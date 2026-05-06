@@ -1,0 +1,9 @@
+streamlit
+huggingface_hub
+torch
+transformers
+pillow
+fpdf2
+monai
+numpy
+requests

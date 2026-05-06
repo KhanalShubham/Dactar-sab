@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+.env
+
+# Project specific
+embeddings_cache/
+annotation_export/
+priority_review/
+historical_cases/
+medical_clip_fine_tuned/
+*.png
+*.jpg
+*.pdf
+_spineai_tmp.png
+
+# IDEs
+.vscode/
+.idea/
