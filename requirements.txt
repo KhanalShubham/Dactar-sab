@@ -5,5 +5,10 @@ transformers
 pillow
 fpdf2
 monai
+pydicom
 numpy
 requests
+python-dotenv
+reportlab
+faiss-cpu
+tqdm

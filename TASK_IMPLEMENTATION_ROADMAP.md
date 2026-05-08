@@ -1,110 +1,35 @@
-# 🚀 Medical AI & CLIP Implementation Roadmap
+# SpineAI Pro: Implementation Roadmap & Progress
 
-## 1. Medical-First Annotation (Recommended)
+This document tracks the evolution of SpineAI Pro from a prototype to a clinically-verifiable medical reasoning system.
 
-### 👉 MONAI Label
-* Built on MONAI
-* AI-assisted annotation (huge time saver)
-* Works well with radiology workflows
-* **💡 Perfect if you want:** Tight integration with your AI pipeline, Research + startup hybrid model
+## ✅ Phase 1-5: Foundation & Prototype
+- [x] Initial Streamlit UI for MRI upload.
+- [x] Integration with BiomedCLIP for basic tagging.
+- [x] LLM narrative generation for radiology reports.
+- [x] Basic patient data management and report export.
 
-### 👉 3D Slicer
-* Best for: CT / MRI segmentation
-* Open-source, Widely used in hospitals
-* **💡 Use this if:** You’re dealing with volumetric scans (not just X-rays)
+## ✅ Phase 6-7: Volumetric Analysis & Precision
+- [x] **3D Consensus Engine**: Implemented slice agreement validation across MRI volumes.
+- [x] **Medical Signal Analysis**: T2-weighted intensity profiling for disc desiccation detection.
+- [x] **Semantic Case Search**: FAISS-powered retrieval of similar historical patterns.
 
----
+## ✅ Phase 8: Structured Reasoning (SIR)
+- [x] **SIR-Driven Architecture**: Transitioned to a "Structured Intermediate Representation" (SIR) source-of-truth.
+- [x] **ACE (Anatomical Constraint Engine)**: Enforced neuroanatomical boundary rules and exiting vs. traversing root mapping.
+- [x] **Lateral Recess Layer**: Added dedicated detection for lateral recess pathology.
 
-## 2. Startup-Grade (Scalable SaaS)
+## ✅ Phase 9: Causal Reasoning & Evidence
+- [x] **CRE (Causal Reasoning Engine)**: Implemented pathophysiological mechanisms (linking causes to findings).
+- [x] **Quantitative Suite**: Added metrics for AP Diameter, CSF Preservation, and Dural Sac CSA.
+- [x] **Temporal Comparison**: Added longitudinal "Compare to Prior" mode.
 
-### 👉 Labelbox
-* Clean UI
-* Supports image + text (important for CLIP)
-* Good team collaboration
-* **💡 Best for:** Building a team of annotators (doctors + interns)
+## ✅ Phase 10: Clinical Logic & Tone Restoration
+- [x] **SCV (Symbolic Causal Validator)**: Implemented neuro-symbolic logic to suppress illogical overcalls.
+- [x] **Silent AI Tone**: Purged AI meta-language; restored professional radiologist-grade narrative.
+- [x] **UI Polish**: Streamlined Review interface with color-coded confidence indicators and reasoning audits.
 
-### 👉 SuperAnnotate
-* Advanced QA workflows
-* Automation + analytics
-* **💡 Good when:** You start scaling (1000s of images)
-
-### 👉 CVAT
-* Free + powerful
-* Used by many AI teams
-* **💡 Best for:** Budget-friendly startup phase
-
----
-
-## 3. Lightweight / Fast Setup
-
-### 👉 Label Studio
-* Supports: Image + text pairing (CLIP use-case ✅)
-* Highly customizable
-
----
-
-## 🎯 Fine-Tuning CLIP (Important for YOU)
-
-Instead of training from scratch:
-1. **Start with pretrained CLIP**
-2. **Fine-tune on medical data**
-
-**Why?**
-* Saves compute
-* Improves domain accuracy
-
----
-
-## 🏥 How YOU Can Use This (High Impact)
-
-Given your startups (EN Health / AIRES / Aashirwad Care), CLIP can be used for:
-
-1. **Radiology AI Assistant**
-   * Upload X-ray → auto tag findings
-   * Helps rural telemedicine
-2. **Smart Triage System**
-   * Image + symptoms → severity prediction
-3. **Medical Search Engine**
-   * “Show me pneumonia cases” → retrieve similar X-rays
-
----
-
-## 🚀 Advanced Direction (Where You Should Go)
-
-If your goal is medical LLM, combine:
-* **CLIP** (image understanding)
-* **LLM** (text reasoning)
-* *Examples:* Med-PaLM 2, BioViL
-
-**👉 This becomes: Multimodal Medical AI (future of healthcare)**
-
----
-
-## 🧠 How CLIP Training Works (Core Idea)
-
-CLIP uses contrastive learning:
-* **Match:** (X-ray ↔ correct report) ✅
-* **Mismatch:** (X-ray ↔ random report) ❌
-
-**Goal:**
-* 👉 Bring correct pairs closer in embedding space
-* 👉 Push incorrect pairs apart
-
----
-
-## 🏗️ Training Pipeline (Step-by-Step)
-
-### 1. Dataset Preparation (Most Important)
-You need paired data:
-* Image → CT / MRI / X-ray
-* Text → Radiology report / label
-
-**Medical datasets you can use:**
-* MIMIC-CXR
-* CheXpert
-* **👉 For Nepal context:** you can later build your own dataset via EN Health teleclinics
-
-### 2. Model Architecture
-CLIP has 2 encoders:
-* Image encoder → ResNet / Vision Transformer
-* Text encoder → Transformer
+## 🚀 Future Roadmap (Phase 11+)
+- [ ] **DICOM Native Support**: Direct ingestion of DICOM metadata and pixel data.
+- [ ] **Multi-Plane Co-Registration**: Synchronized Sagittal/Axial view coordination.
+- [ ] **Human-in-the-Loop Fine-Tuning**: Capturing radiologist edits to fine-tune the CLIP weights over time.
+- [ ] **FDA/Regulatory Audit Trail**: Hard-logging of all SCV suppression events for regulatory compliance.

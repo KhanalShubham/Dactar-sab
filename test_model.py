@@ -3,7 +3,7 @@ from huggingface_hub import InferenceClient
 import os
 client = InferenceClient(
     model="Qwen/Qwen2.5-7B-Instruct",
-    token=os.getenv("HF_TOKEN", "")
+    token=os.getenv("HF_TOKEN")
 )
 
 response = client.chat_completion(

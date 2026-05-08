@@ -83,31 +83,47 @@ class MedicalCLIPAnalyzer:
                 "normal lumbar lordosis and vertebral alignment",
                 "grade I anterolisthesis",
                 "degenerative spondylolisthesis",
-                "retrolisthesis of the vertebral body",
+                "retrolisthesis",
                 
-                # BONE MARROW & TECHNIQUE
-                "T1 and T2 weighted sagittal sequences",
+                # BONE MARROW & CONUS
                 "normal vertebral body bone marrow signal",
-                "hemangioma of the vertebral body",
-                "Modic type I endplate inflammatory changes",
-                "Modic type II endplate fatty changes",
-                "vertebral body compression fracture",
-                "Schmorl's nodes in the vertebral endplates",
+                "conus medullaris ends at L1-L2 with normal signal",
+                "vertebral body hemangioma",
+                "Modic type I endplate changes",
+                "Modic type II endplate changes",
+                "vertebral compression fracture",
 
-                # DISC ASSESSMENT
-                "severe spinal canal stenosis with thecal sac compression",
-                "central canal narrowing with nerve root crowding",
-                "disc protrusion causing neural foraminal narrowing",
-                "disc extrusion with migrated fragment",
-                "T2 desiccation of the intervertebral disc",
-                "annular fissure or high intensity zone",
-                "healthy intervertebral disc signal and height",
-
+                # SPINAL CANAL & THECAL SAC (Anatomically Correct)
+                "normal thecal sac and canal patency",
+                "mild thecal sac effacement",
+                "lateral recess narrowing",
+                "moderate lateral recess stenosis",
+                "moderate spinal canal stenosis with cauda equina crowding",
+                "severe spinal canal stenosis with nerve root crowding",
+                "redundant nerve roots of the cauda equina",
+                "congenital narrow spinal canal",
+                
+                # FORAMINA & ROOTS
+                "patent neural foramina",
+                "mild neural foraminal narrowing",
+                "moderate foraminal stenosis contacting the exiting nerve root",
+                "severe foraminal stenosis compressing the exiting nerve root",
+                "exiting L5 nerve root contact",
+                "traversing S1 nerve root contact",
+                "traversing nerve root displacement",
+                
+                # DISCS
+                "normal disc height and signal",
+                "mild disc desiccation and height loss",
+                "broad-based posterior disc bulge",
+                "central disc protrusion",
+                "paracentral disc extrusion",
+                "foraminal disc protrusion",
+                "annular fissure",
+                
                 # FACETS & SOFT TISSUE
                 "facet joint hypertrophy and arthropathy",
-                "ligamentum flavum thickening",
-                "cauda equina nerve root impingement",
-                "paraspinal muscle atrophy or fatty infiltration"
+                "ligamentum flavum thickening"
             ]
 
         try:
@@ -190,3 +206,186 @@ class MedicalCLIPAnalyzer:
             "missing_findings": missing,
             "status": "VALID" if score > 0.8 else "WARNING"
         }
+
+    def analyze_volume_consensus(self, images_list, threshold=0.10):
+        """
+        Runs precision tagging across a list of images (3D stack).
+        Implements Phase 7: Slice Agreement Validation.
+        """
+        all_tags = []
+        for img_bytes in images_list:
+            tags = self.auto_tag_findings(img_bytes, threshold=threshold)
+            all_tags.append(tags)
+            
+        consensus_map = {}
+        for slice_tags in all_tags:
+            for tag in slice_tags:
+                label = tag['label']
+                score = tag['score']
+                if label not in consensus_map:
+                    consensus_map[label] = []
+                consensus_map[label].append(score)
+        
+        # SLICE AGREEMENT VALIDATION (Requirement: Findings must persist across 20% of slices)
+        min_occurrences = max(1, len(images_list) // 5)
+        final_consensus = []
+        for label, scores in consensus_map.items():
+            if len(scores) >= min_occurrences:
+                avg_score = sum(scores) / len(images_list)
+                final_consensus.append({"label": label, "score": avg_score})
+        
+        return sorted(final_consensus, key=lambda x: x['score'], reverse=True)
+
+    def get_sir_map(self, findings):
+        """
+        Generates a 'Structured Intermediate Representation' (SIR).
+        Phase 8: Expert-Tier Reasoning.
+        """
+        sir = {
+            "L1-L2": {"disc": "Normal", "canal": "Patent", "foramina": "Patent", "facets": "Normal", "lateral_recess": "Patent"},
+            "L2-L3": {"disc": "Normal", "canal": "Patent", "foramina": "Patent", "facets": "Normal", "lateral_recess": "Patent"},
+            "L3-L4": {"disc": "Normal", "canal": "Patent", "foramina": "Patent", "facets": "Normal", "lateral_recess": "Patent"},
+            "L4-L5": {"disc": "Normal", "canal": "Patent", "foramina": "Patent", "facets": "Normal", "lateral_recess": "Patent"},
+            "L5-S1": {"disc": "Normal", "canal": "Patent", "foramina": "Patent", "facets": "Normal", "lateral_recess": "Patent"},
+            "CONUS": "Normal termination at L1-L2",
+            "ALIGNMENT": "Preserved lumbar lordosis",
+            "BONE_MARROW": "Normal signal"
+        }
+        
+        for f in findings:
+            label = f['label'].lower()
+            level = "L4-L5" # Default if not specified
+            for l in sir.keys():
+                if l.lower() in label: level = l
+            
+            if "disc" in label or "bulge" in label or "protrusion" in label:
+                sir[level]["disc"] = f['label']
+            if "canal" in label or "stenosis" in label:
+                sir[level]["canal"] = f['label']
+            if "foramina" in label:
+                sir[level]["foramina"] = f['label']
+            if "facet" in label:
+                sir[level]["facets"] = f['label']
+            if "recess" in label:
+                sir[level]["lateral_recess"] = f['label']
+                
+        return sir
+
+class SymbolicCausalValidator:
+    """Enforces clinical logic: Findings must have a causal mechanism."""
+    
+    @staticmethod
+    def validate_and_refine(sir):
+        levels = ["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]
+        for level in levels:
+            data = sir[level]
+            canal = data["canal"].lower()
+            
+            # RULE: Severe Stenosis REQUIRES a cause (Bulge, Facets, Flavum, or Congenital)
+            if "severe" in canal:
+                cause_found = (
+                    "bulge" in data["disc"].lower() or 
+                    "protrusion" in data["disc"].lower() or
+                    "extrusion" in data["disc"].lower() or
+                    "hypertrophy" in data["facets"].lower() or
+                    "thickening" in data["facets"].lower() or
+                    "narrow" in canal # congenital
+                )
+                if not cause_found:
+                    # Downgrade if no cause is identified to maintain medical integrity
+                    sir[level]["canal"] = "Normal thecal sac and canal patency (AI overcall suppressed)"
+                    sir[level]["_flag"] = "Contradiction: Stenosis removed due to lack of causal mechanism."
+            
+            # RULE: Terminology refinement
+            if "age-related" in canal:
+                sir[level]["canal"] = canal.replace("age-related", "degenerative")
+                
+        return sir
+
+class CausalReasoningEngine:
+    """Explains the 'Why' behind findings (Pathophysiological Reasoning)."""
+    
+    @staticmethod
+    def derive_causality(findings):
+        causality_map = {}
+        labels = [f['label'].lower() for f in findings]
+        
+        # Level-by-level causality
+        levels = ["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]
+        for level in levels:
+            reasons = []
+            if any(level.lower() in l and "stenosis" in l for l in labels):
+                if any(level.lower() in l and "facet" in l for l in labels):
+                    reasons.append("facet joint hypertrophy")
+                if any(level.lower() in l and "ligamentum" in l for l in labels):
+                    reasons.append("ligamentum flavum thickening")
+                if any(level.lower() in l and "disc" in l for l in labels):
+                    reasons.append("disc bulge/protrusion")
+            
+            if reasons:
+                causality_map[level] = f"Stenosis is likely multifactorial, secondary to {', '.join(reasons)}."
+            else:
+                causality_map[level] = "Normal age-related findings or primary congenital narrowing."
+                
+        return causality_map
+
+class AnatomicalConstraintEngine:
+    """Enforces strict neuroanatomical logic rules to prevent AI hallucinations."""
+    
+    @staticmethod
+    def apply_constraints(findings, levels=["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]):
+        corrected = []
+        for f in findings:
+            label = f['label'].lower()
+            score = f['score']
+            
+            # RULE 1: Physical Boundary Enforcement
+            if "spinal cord" in label:
+                f['label'] = f['label'].replace("spinal cord", "thecal sac/cauda equina")
+            
+            # RULE 2: EXPERT ROOT MAPPING (Phase 8)
+            # Foraminal Stenosis -> Exiting Root (N)
+            # Lateral Recess Stenosis -> Traversing Root (N+1)
+            if "foramina" in label or "foraminal" in label:
+                if "l3-l4" in label: f['root_info'] = "Exiting L3 nerve root"
+                elif "l4-l5" in label: f['root_info'] = "Exiting L4 nerve root"
+                elif "l5-s1" in label: f['root_info'] = "Exiting L5 nerve root"
+            
+            if "recess" in label:
+                if "l3-l4" in label: f['root_info'] = "Traversing L4 nerve root"
+                elif "l4-l5" in label: f['root_info'] = "Traversing L5 nerve root"
+                elif "l5-s1" in label: f['root_info'] = "Traversing S1 nerve root"
+            
+            # RULE 3: Language Softening (Phase 8)
+            # Replace 'compression' with safer terms unless extremely high confidence
+            if "compression" in label and score < 0.8:
+                f['label'] = f['label'].replace("compression", "mass effect/crowding")
+            
+            # RULE 4: Modifier Assignment
+            if score > 0.85: f['modifier'] = "Definite"
+            elif score > 0.65: f['modifier'] = "Likely"
+            elif score > 0.40: f['modifier'] = "Probable"
+            else: f['modifier'] = "Possible"
+            
+            corrected.append(f)
+        return corrected
+
+class ConsistencyEngine:
+    """Detects and flags logical contradictions in findings."""
+    
+    @staticmethod
+    def detect_contradictions(findings):
+        labels = [f['label'].lower() for f in findings]
+        conflicts = []
+        
+        # Conflict: Normal Canal + Severe Stenosis
+        if any("normal" in l and "canal" in l for l in labels) and \
+           any("severe" in l and "stenosis" in l for l in labels):
+            conflicts.append("Contradiction: Normal canal findings co-exist with severe stenosis markers.")
+            
+        # Conflict: Normal Signal + Severe Desiccation
+        if any("normal" in l and "disc" in l for l in labels) and \
+           any("desiccation" in l or "height loss" in l for l in labels):
+            conflicts.append("Contradiction: Normal disc signal co-exists with degenerative markers.")
+            
+        return conflicts
