@@ -13,3 +13,4 @@ reportlab
 faiss-cpu
 tqdm
 open_clip_torch
+opencv-python-headless
