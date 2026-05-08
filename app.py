@@ -586,9 +586,9 @@ elif st.session_state.state == "UPLOAD":
 
         col_prev, col_action = st.columns([1, 1])
         with col_prev:
-            st.image(active_image, caption=f"{study_type_label} - Key Slice Preview", width="stretch")
+            st.image(active_image, caption=f"{study_type_label} - Key Slice Preview", use_container_width=True)
             if intensity_profile is not None:
-                st.line_chart(intensity_profile, height=150, width="stretch")
+                st.line_chart(intensity_profile, height=150, use_container_width=True)
                 st.caption("📏 3D Mean T2 Signal Intensity Profile")
         
         with col_action:
