@@ -1,3 +1,14 @@
+---
+title: Dactar Sab
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: 1.40.1
+app_file: app.py
+pinned: false
+---
+
 # SpineAI Pro: Expert-Tier Neuroradiology Reasoning Engine
 
 SpineAI Pro is a clinically-grounded artificial intelligence platform designed for the advanced interpretation of Lumbar Spine MRI. Unlike generic generative AI, SpineAI Pro utilizes a **Neuro-Symbolic Architecture** that prioritizes anatomical consistency, pathophysiological causality, and professional neuroradiological standards.
