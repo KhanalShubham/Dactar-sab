@@ -721,9 +721,9 @@ elif st.session_state.state == "REVIEW":
         if res.get("is_3d") and "processed_volume" in st.session_state:
             vol = st.session_state.processed_volume
             slice_idx = st.slider("Slice Navigator (3D Stack)", 0, len(vol)-1, len(vol)//2)
-            st.image(vol[slice_idx], caption=f"Slice {slice_idx+1} of {len(vol)} (3D Consensus)", width="stretch")
+            st.image(vol[slice_idx], caption=f"Slice {slice_idx+1} of {len(vol)} (3D Consensus)", use_container_width=True)
         else:
-            st.image(res["image"], caption="Key Study Slice", width="stretch")
+            st.image(res["image"], caption="Key Study Slice", use_container_width=True)
 
         if res.get("profile") is not None:
             st.line_chart(res["profile"], height=100)
@@ -834,7 +834,7 @@ elif st.session_state.state == "FINAL":
     col_img, col_rep = st.columns([1, 2])
     with col_img:
         st.markdown("**Reference Image**")
-        st.image(res["image"], width="stretch")
+        st.image(res["image"], use_container_width=True)
 
     with col_rep:
         st.markdown("**Final Radiology Report**")
