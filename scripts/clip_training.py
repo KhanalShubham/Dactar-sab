@@ -53,7 +53,7 @@ class CLIPTrainer:
         self.optimizer = AdamW(self.model.parameters(), lr=lr, weight_decay=0.05)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=10)
 
-    def train(self, train_loader, val_loader=None, epochs=3, output_dir="./medical_clip_fine_tuned"):
+    def train(self, train_loader, val_loader=None, epochs=3, output_dir="./models/medical_clip_fine_tuned"):
         """Full training loop."""
         for epoch in range(epochs):
             print(f"\n--- Epoch {epoch+1}/{epochs} ---")
@@ -102,7 +102,7 @@ class CLIPTrainer:
         torch.save(self.model.state_dict(), os.path.join(output_dir, "biomedclip_finetuned.pt"))
         print(f"Model weights saved to {output_dir}")
 
-def generate_dummy_training_data(output_file="sample_training.jsonl"):
+def generate_dummy_training_data(output_file="data/annotation_export/sample_training.jsonl"):
     """Creates a small mock dataset to test the training pipeline."""
     samples = [
         {"image": "test.png", "report": "severe spinal canal stenosis at L4-L5."},
@@ -118,7 +118,7 @@ def generate_dummy_training_data(output_file="sample_training.jsonl"):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_data", type=str, default="sample_training.jsonl")
+    parser.add_argument("--train_data", type=str, default="data/annotation_export/sample_training.jsonl")
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=2)
     args = parser.parse_args()
@@ -126,13 +126,16 @@ if __name__ == "__main__":
     print("SpineAI Precision CLIP Training Pipeline")
     
     if not os.path.exists(args.train_data):
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(args.train_data), exist_ok=True)
         generate_dummy_training_data(args.train_data)
         
     trainer = CLIPTrainer()
     dataset = MedicalImageReportDataset(
         args.train_data, 
         trainer.tokenizer, 
-        trainer.preprocess_train
+        trainer.preprocess_train,
+        image_root="." # Assuming images are in root for now, or update as needed
     )
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
     

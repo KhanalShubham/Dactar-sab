@@ -1,0 +1,186 @@
+2026-05-11 15:08:06,982 - NepalIndexPipeline - INFO - Starting Nepal Medical Guidelines Indexing Pipeline
+2026-05-11 15:08:06,983 - NepalIndexPipeline - INFO - Found 5 PDFs to process.
+2026-05-11 15:08:06,983 - IndexBuilder - INFO - Loading embedding model: dmis-lab/biobert-base-cased-v1.2
+2026-05-11 15:08:06,985 - sentence_transformers.base.model - INFO - No device provided, using cpu
+2026-05-11 15:08:07,794 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:08:07,798 - sentence_transformers.base.model - INFO - No modules.json found for dmis-lab/biobert-base-cased-v1.2, initializing a new SentenceTransformer model.
+2026-05-11 15:08:08,073 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:08:08,347 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:08:08,348 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-05-11 15:08:08,375 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:08:08,412 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:08:08,785 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-05-11 15:08:09,065 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:08:09,340 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/pytorch_model.bin "HTTP/1.1 302 Found"
+2026-05-11 15:08:09,660 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/xet-read-token/67c9c25b46986521ca33df05d8540da1210b3256 "HTTP/1.1 200 OK"
+2026-05-11 15:09:19,424 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:19,706 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 15:09:20,063 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/main "HTTP/1.1 200 OK"
+2026-05-11 15:09:20,410 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/discussions?p=0 "HTTP/1.1 200 OK"
+2026-05-11 15:09:20,495 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:20,715 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/refs%2Fpr%2F10 "HTTP/1.1 200 OK"
+2026-05-11 15:09:20,771 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:20,994 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:21,048 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:21,294 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors "HTTP/1.1 302 Found"
+2026-05-11 15:09:21,322 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:21,574 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/xet-read-token/06124d9ac04ec7f2e522f485574232e7acba45d2 "HTTP/1.1 200 OK"
+2026-05-11 15:09:21,585 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:21,865 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:09:21,891 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:09:22,156 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:09:22,183 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:09:22,466 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:22,753 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:23,039 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:23,304 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-05-11 15:09:23,585 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/vocab.txt "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:09:23,613 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/vocab.txt "HTTP/1.1 200 OK"
+2026-05-11 15:09:23,647 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/vocab.txt "HTTP/1.1 200 OK"
+2026-05-11 15:09:23,966 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:24,656 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/added_tokens.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:24,967 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/special_tokens_map.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:25,308 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:25,722 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 15:09:25,738 - NepalIndexPipeline - INFO - Processing 423498305-Mri-Ct-Ordering-Guide.pdf...
+2026-05-11 15:09:25,966 - PDFProcessor - INFO - Successfully extracted 3 pages from data/nepal_guidelines/sources\423498305-Mri-Ct-Ordering-Guide.pdf
+2026-05-11 15:09:56,675 - NepalIndexPipeline - INFO - Starting Nepal Medical Guidelines Indexing Pipeline
+2026-05-11 15:09:56,675 - NepalIndexPipeline - INFO - Found 5 PDFs to process.
+2026-05-11 15:09:56,676 - IndexBuilder - INFO - Loading embedding model: dmis-lab/biobert-base-cased-v1.2
+2026-05-11 15:09:56,678 - sentence_transformers.base.model - INFO - No device provided, using cpu
+2026-05-11 15:09:57,419 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:57,421 - sentence_transformers.base.model - INFO - No modules.json found for dmis-lab/biobert-base-cased-v1.2, initializing a new SentenceTransformer model.
+2026-05-11 15:09:57,697 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:57,698 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-05-11 15:09:57,968 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:09:57,998 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:09:58,307 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:58,582 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 15:09:58,862 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/main "HTTP/1.1 200 OK"
+2026-05-11 15:09:59,135 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/discussions?p=0 "HTTP/1.1 200 OK"
+2026-05-11 15:09:59,237 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:59,412 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/refs%2Fpr%2F10 "HTTP/1.1 200 OK"
+2026-05-11 15:09:59,512 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:59,686 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:59,784 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:09:59,954 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors "HTTP/1.1 302 Found"
+2026-05-11 15:10:00,047 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:10:00,239 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/xet-read-token/06124d9ac04ec7f2e522f485574232e7acba45d2 "HTTP/1.1 200 OK"
+2026-05-11 15:10:00,356 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:10:00,638 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:10:00,664 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:10:00,940 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:10:00,967 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 15:10:01,270 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:10:01,542 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 15:10:01,808 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-05-11 15:10:02,115 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-05-11 15:10:02,413 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/vocab.txt "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 15:10:02,497 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/vocab.txt "HTTP/1.1 200 OK"
+2026-05-11 15:10:02,859 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 15:10:02,862 - NepalIndexPipeline - INFO - Processing 423498305-Mri-Ct-Ordering-Guide.pdf...
+2026-05-11 15:10:03,058 - PDFProcessor - INFO - Successfully extracted 3 pages from data/nepal_guidelines/sources\423498305-Mri-Ct-Ordering-Guide.pdf
+2026-05-11 15:10:03,266 - NepalIndexPipeline - INFO - Generated 3 chunks from 423498305-Mri-Ct-Ordering-Guide.pdf
+2026-05-11 15:10:03,267 - NepalIndexPipeline - INFO - Processing BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf...
+2026-05-11 15:10:03,680 - PDFProcessor - INFO - Page 2 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,687 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 2: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,696 - PDFProcessor - INFO - Page 4 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,698 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 4: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,712 - PDFProcessor - INFO - Page 5 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,714 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 5: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,715 - PDFProcessor - INFO - Page 6 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,717 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 6: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,723 - PDFProcessor - INFO - Page 7 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,726 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 7: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,727 - PDFProcessor - INFO - Page 8 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,729 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 8: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,735 - PDFProcessor - INFO - Page 9 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,737 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 9: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,738 - PDFProcessor - INFO - Page 10 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,740 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 10: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,747 - PDFProcessor - INFO - Page 11 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,749 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 11: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,750 - PDFProcessor - INFO - Page 12 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,752 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 12: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:03,758 - PDFProcessor - INFO - Page 13 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:03,761 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 13: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:32,184 - PDFProcessor - INFO - Page 297 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:32,187 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 297: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:32,375 - PDFProcessor - INFO - Page 301 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:32,378 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 301: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:32,930 - PDFProcessor - INFO - Page 309 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 15:10:32,932 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 309: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 15:10:33,426 - PDFProcessor - INFO - Successfully extracted 296 pages from data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf
+2026-05-11 15:10:33,498 - NepalIndexPipeline - INFO - Generated 410 chunks from BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf
+2026-05-11 15:10:33,498 - NepalIndexPipeline - INFO - Processing CD003165.pdf...
+2026-05-11 15:10:33,651 - PDFProcessor - INFO - Successfully extracted 3 pages from data/nepal_guidelines/sources\CD003165.pdf
+2026-05-11 15:10:33,653 - NepalIndexPipeline - INFO - Generated 3 chunks from CD003165.pdf
+2026-05-11 15:10:33,653 - NepalIndexPipeline - INFO - Processing MRI_Evaluation_of_Degenerative_Lumbar_Spine_in_Pop.pdf...
+2026-05-11 15:10:35,398 - PDFProcessor - INFO - Successfully extracted 6 pages from data/nepal_guidelines/sources\MRI_Evaluation_of_Degenerative_Lumbar_Spine_in_Pop.pdf
+2026-05-11 15:10:35,400 - NepalIndexPipeline - INFO - Generated 11 chunks from MRI_Evaluation_of_Degenerative_Lumbar_Spine_in_Pop.pdf
+2026-05-11 15:10:35,401 - NepalIndexPipeline - INFO - Processing Profile_and_Outcome_of_Adult_Spine_Pathologies_Man.pdf...
+2026-05-11 15:10:36,927 - PDFProcessor - INFO - Successfully extracted 5 pages from data/nepal_guidelines/sources\Profile_and_Outcome_of_Adult_Spine_Pathologies_Man.pdf
+2026-05-11 15:10:36,931 - NepalIndexPipeline - INFO - Generated 12 chunks from Profile_and_Outcome_of_Adult_Spine_Pathologies_Man.pdf
+2026-05-11 15:10:36,931 - NepalIndexPipeline - INFO - Building FAISS index for 439 total chunks...
+2026-05-11 15:10:36,931 - IndexBuilder - INFO - Embedding 439 chunks...
+2026-05-11 15:13:03,121 - IndexBuilder - INFO - Index and 439 chunks saved to data/rag_index
+2026-05-11 15:13:03,122 - NepalIndexPipeline - INFO - Pipeline completed successfully.
+2026-05-11 19:36:17,050 - NepalIndexPipeline - INFO - Starting Nepal Medical Guidelines Indexing Pipeline
+2026-05-11 19:36:17,051 - NepalIndexPipeline - INFO - Found 5 PDFs to process.
+2026-05-11 19:36:17,051 - IndexBuilder - INFO - Loading embedding model: dmis-lab/biobert-base-cased-v1.2
+2026-05-11 19:36:17,054 - sentence_transformers.base.model - INFO - No device provided, using cpu
+2026-05-11 19:36:18,180 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:18,182 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-05-11 19:36:18,194 - sentence_transformers.base.model - INFO - No modules.json found for dmis-lab/biobert-base-cased-v1.2, initializing a new SentenceTransformer model.
+2026-05-11 19:36:18,494 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:18,800 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 19:36:18,831 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 19:36:19,414 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:19,720 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 19:36:20,136 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/main "HTTP/1.1 200 OK"
+2026-05-11 19:36:20,414 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/discussions?p=0 "HTTP/1.1 200 OK"
+2026-05-11 19:36:20,744 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/commits/refs%2Fpr%2F10 "HTTP/1.1 200 OK"
+2026-05-11 19:36:20,745 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:21,029 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:21,055 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:21,358 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:21,359 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/refs%2Fpr%2F10/model.safetensors "HTTP/1.1 302 Found"
+2026-05-11 19:36:21,666 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:21,973 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:22,280 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 19:36:22,309 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 19:36:22,587 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 19:36:22,616 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/config.json "HTTP/1.1 200 OK"
+2026-05-11 19:36:22,997 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:23,304 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/tokenizer_config.json "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:23,612 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-05-11 19:36:23,920 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-05-11 19:36:24,330 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/dmis-lab/biobert-base-cased-v1.2/resolve/main/vocab.txt "HTTP/1.1 307 Temporary Redirect"
+2026-05-11 19:36:24,360 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/dmis-lab/biobert-base-cased-v1.2/67c9c25b46986521ca33df05d8540da1210b3256/vocab.txt "HTTP/1.1 200 OK"
+2026-05-11 19:36:24,766 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/dmis-lab/biobert-base-cased-v1.2 "HTTP/1.1 200 OK"
+2026-05-11 19:36:24,790 - NepalIndexPipeline - INFO - Processing 423498305-Mri-Ct-Ordering-Guide.pdf...
+2026-05-11 19:36:25,137 - PDFProcessor - INFO - Successfully extracted 3 pages from data/nepal_guidelines/sources\423498305-Mri-Ct-Ordering-Guide.pdf
+2026-05-11 19:36:25,325 - NepalIndexPipeline - INFO - Generated 3 chunks from 423498305-Mri-Ct-Ordering-Guide.pdf
+2026-05-11 19:36:25,326 - NepalIndexPipeline - INFO - Processing BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf...
+2026-05-11 19:36:26,023 - PDFProcessor - INFO - Page 2 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,027 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 2: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,039 - PDFProcessor - INFO - Page 4 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,043 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 4: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,059 - PDFProcessor - INFO - Page 5 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,063 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 5: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,064 - PDFProcessor - INFO - Page 6 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,067 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 6: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,076 - PDFProcessor - INFO - Page 7 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,080 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 7: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,083 - PDFProcessor - INFO - Page 8 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,086 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 8: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,095 - PDFProcessor - INFO - Page 9 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,099 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 9: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,099 - PDFProcessor - INFO - Page 10 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,103 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 10: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,115 - PDFProcessor - INFO - Page 11 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,119 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 11: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,119 - PDFProcessor - INFO - Page 12 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,123 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 12: Unable to get page count. Is poppler installed and in PATH?
+2026-05-11 19:36:26,133 - PDFProcessor - INFO - Page 13 of data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf looks scanned. Attempting OCR...
+2026-05-11 19:36:26,137 - PDFProcessor - ERROR - OCR failed for data/nepal_guidelines/sources\BHS_STP_Final-Pdf_CSD-1658048012-1658122810.pdf page 13: Unable to get page count. Is poppler installed and in PATH?

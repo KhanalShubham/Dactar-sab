@@ -20,7 +20,7 @@ class MedicalCLIPAnalyzer:
     Provides high-precision zero-shot alignment for spinal MRI.
     """
     
-    def __init__(self, model_name="hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224", cache_dir="./embeddings_cache"):
+    def __init__(self, model_name="hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224", cache_dir="./data/embeddings_cache"):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.cache_dir = cache_dir
         self.index_path = os.path.join(cache_dir, "medical_cases.index")
@@ -37,7 +37,38 @@ class MedicalCLIPAnalyzer:
             self.model.eval()
             self.tokenizer = open_clip.get_tokenizer(model_name)
             
-            logger.info("BiomedCLIP engine initialized with full medical precision.")
+            # MULTIMODAL KNOWLEDGE BASE
+            self.MODALITIES = {
+                "SPINE_MRI": "sagittal t2-weighted lumbar spine mri showing vertebral bodies and discs",
+                "CHEST_XRAY": "frontal chest x-ray showing lungs, heart and ribs",
+                "EXTREMITY_XRAY": "x-ray of human limb, leg, knee, or arm showing bones and joints"
+            }
+            
+            self.TAGS_BY_MODALITY = {
+                "SPINE_MRI": [
+                    "normal lumbar lordosis", "grade I anterolisthesis", "degenerative spondylolisthesis",
+                    "normal vertebral body marrow", "conus medullaris ends at L1-L2", "vertebral body hemangioma",
+                    "Modic type I endplate changes", "Modic type II endplate changes", "vertebral compression fracture",
+                    "normal thecal sac patency", "lateral recess narrowing", "moderate spinal canal stenosis",
+                    "severe spinal canal stenosis", "cauda equina crowding", "patent neural foramina",
+                    "foraminal stenosis contacting exiting nerve root", "normal disc height and signal",
+                    "mild disc desiccation", "posterior disc bulge", "central disc protrusion",
+                    "paracentral disc extrusion", "facet joint hypertrophy"
+                ],
+                "CHEST_XRAY": [
+                    "normal clear lungs and pleura", "pneumonia with consolidation", "pleural effusion",
+                    "cardiomegaly with enlarged heart shadow", "pneumothorax", "hilar lymphadenopathy",
+                    "pulmonary nodule", "interstitial lung disease", "atelectasis", "rib fracture",
+                    "hiatal hernia", "congestive heart failure"
+                ],
+                "EXTREMITY_XRAY": [
+                    "normal bone alignment and joint space", "acute cortical fracture", "comminuted fracture",
+                    "osteoarthritis with joint space narrowing", "marginal osteophytes", "joint dislocation",
+                    "soft tissue swelling", "bone cyst", "osteopenia", "periosteal reaction"
+                ]
+            }
+            
+            logger.info("BiomedCLIP engine initialized with multimodal precision.")
         except Exception as e:
             logger.error(f"CRITICAL ERROR: Failed to load BiomedCLIP engine: {e}")
             raise RuntimeError(f"Precision AI engine failed to load. Ensure open_clip_torch is installed and HF is reachable. Error: {e}")
@@ -73,58 +104,43 @@ class MedicalCLIPAnalyzer:
             
         return image_features.cpu().numpy()
 
+    def detect_modality(self, image_bytes):
+        """
+        Zero-shot modality classifier to detect if image is Spine, Chest, or Extremity.
+        """
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image_tensor = self.preprocess_val(image).unsqueeze(0).to(self.device)
+        
+        modality_keys = list(self.MODALITIES.keys())
+        modality_descriptions = list(self.MODALITIES.values())
+        
+        text_tokens = self.tokenizer(modality_descriptions).to(self.device)
+        
+        with torch.no_grad():
+            image_features = self.model.encode_image(image_tensor)
+            text_features = self.model.encode_text(text_tokens)
+            
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            text_features /= text_features.norm(dim=-1, keepdim=True)
+            
+            logits = 100.0 * image_features @ text_features.T
+            probs = logits.softmax(dim=-1).cpu().numpy()[0]
+            
+        best_idx = np.argmax(probs)
+        detected = modality_keys[best_idx]
+        logger.info(f"Detected modality: {detected} (confidence: {probs[best_idx]:.2f})")
+        return detected
+
     def auto_tag_findings(self, image_bytes, candidate_labels=None, threshold=0.08):
         """
-        Performs Precision Zero-Shot Tagging on the MRI using BiomedCLIP.
+        Performs Precision Zero-Shot Tagging. 
+        If candidate_labels is None, it auto-detects modality and uses appropriate labels.
         """
+        # 1. Modality detection if labels not provided
+        modality = "SPINE_MRI"
         if candidate_labels is None:
-            candidate_labels = [
-                # VERTEBRAL ALIGNMENT
-                "normal lumbar lordosis and vertebral alignment",
-                "grade I anterolisthesis",
-                "degenerative spondylolisthesis",
-                "retrolisthesis",
-                
-                # BONE MARROW & CONUS
-                "normal vertebral body bone marrow signal",
-                "conus medullaris ends at L1-L2 with normal signal",
-                "vertebral body hemangioma",
-                "Modic type I endplate changes",
-                "Modic type II endplate changes",
-                "vertebral compression fracture",
-
-                # SPINAL CANAL & THECAL SAC (Anatomically Correct)
-                "normal thecal sac and canal patency",
-                "mild thecal sac effacement",
-                "lateral recess narrowing",
-                "moderate lateral recess stenosis",
-                "moderate spinal canal stenosis with cauda equina crowding",
-                "severe spinal canal stenosis with nerve root crowding",
-                "redundant nerve roots of the cauda equina",
-                "congenital narrow spinal canal",
-                
-                # FORAMINA & ROOTS
-                "patent neural foramina",
-                "mild neural foraminal narrowing",
-                "moderate foraminal stenosis contacting the exiting nerve root",
-                "severe foraminal stenosis compressing the exiting nerve root",
-                "exiting L5 nerve root contact",
-                "traversing S1 nerve root contact",
-                "traversing nerve root displacement",
-                
-                # DISCS
-                "normal disc height and signal",
-                "mild disc desiccation and height loss",
-                "broad-based posterior disc bulge",
-                "central disc protrusion",
-                "paracentral disc extrusion",
-                "foraminal disc protrusion",
-                "annular fissure",
-                
-                # FACETS & SOFT TISSUE
-                "facet joint hypertrophy and arthropathy",
-                "ligamentum flavum thickening"
-            ]
+            modality = self.detect_modality(image_bytes)
+            candidate_labels = self.TAGS_BY_MODALITY.get(modality, self.TAGS_BY_MODALITY["SPINE_MRI"])
 
         try:
             start_time = datetime.now()
@@ -152,7 +168,7 @@ class MedicalCLIPAnalyzer:
             results = []
             for label, prob in zip(candidate_labels, probs):
                 if prob >= threshold:
-                    results.append({"label": label, "score": float(prob)})
+                    results.append({"label": label, "score": float(prob), "modality": modality})
             
             return sorted(results, key=lambda x: x['score'], reverse=True)
 
@@ -270,122 +286,3 @@ class MedicalCLIPAnalyzer:
                 sir[level]["lateral_recess"] = f['label']
                 
         return sir
-
-class SymbolicCausalValidator:
-    """Enforces clinical logic: Findings must have a causal mechanism."""
-    
-    @staticmethod
-    def validate_and_refine(sir):
-        levels = ["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]
-        for level in levels:
-            data = sir[level]
-            canal = data["canal"].lower()
-            
-            # RULE: Severe Stenosis REQUIRES a cause (Bulge, Facets, Flavum, or Congenital)
-            if "severe" in canal:
-                cause_found = (
-                    "bulge" in data["disc"].lower() or 
-                    "protrusion" in data["disc"].lower() or
-                    "extrusion" in data["disc"].lower() or
-                    "hypertrophy" in data["facets"].lower() or
-                    "thickening" in data["facets"].lower() or
-                    "narrow" in canal # congenital
-                )
-                if not cause_found:
-                    # Downgrade if no cause is identified to maintain medical integrity
-                    sir[level]["canal"] = "Normal thecal sac and canal patency (AI overcall suppressed)"
-                    sir[level]["_flag"] = "Contradiction: Stenosis removed due to lack of causal mechanism."
-            
-            # RULE: Terminology refinement
-            if "age-related" in canal:
-                sir[level]["canal"] = canal.replace("age-related", "degenerative")
-                
-        return sir
-
-class CausalReasoningEngine:
-    """Explains the 'Why' behind findings (Pathophysiological Reasoning)."""
-    
-    @staticmethod
-    def derive_causality(findings):
-        causality_map = {}
-        labels = [f['label'].lower() for f in findings]
-        
-        # Level-by-level causality
-        levels = ["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]
-        for level in levels:
-            reasons = []
-            if any(level.lower() in l and "stenosis" in l for l in labels):
-                if any(level.lower() in l and "facet" in l for l in labels):
-                    reasons.append("facet joint hypertrophy")
-                if any(level.lower() in l and "ligamentum" in l for l in labels):
-                    reasons.append("ligamentum flavum thickening")
-                if any(level.lower() in l and "disc" in l for l in labels):
-                    reasons.append("disc bulge/protrusion")
-            
-            if reasons:
-                causality_map[level] = f"Stenosis is likely multifactorial, secondary to {', '.join(reasons)}."
-            else:
-                causality_map[level] = "Normal age-related findings or primary congenital narrowing."
-                
-        return causality_map
-
-class AnatomicalConstraintEngine:
-    """Enforces strict neuroanatomical logic rules to prevent AI hallucinations."""
-    
-    @staticmethod
-    def apply_constraints(findings, levels=["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]):
-        corrected = []
-        for f in findings:
-            label = f['label'].lower()
-            score = f['score']
-            
-            # RULE 1: Physical Boundary Enforcement
-            if "spinal cord" in label:
-                f['label'] = f['label'].replace("spinal cord", "thecal sac/cauda equina")
-            
-            # RULE 2: EXPERT ROOT MAPPING (Phase 8)
-            # Foraminal Stenosis -> Exiting Root (N)
-            # Lateral Recess Stenosis -> Traversing Root (N+1)
-            if "foramina" in label or "foraminal" in label:
-                if "l3-l4" in label: f['root_info'] = "Exiting L3 nerve root"
-                elif "l4-l5" in label: f['root_info'] = "Exiting L4 nerve root"
-                elif "l5-s1" in label: f['root_info'] = "Exiting L5 nerve root"
-            
-            if "recess" in label:
-                if "l3-l4" in label: f['root_info'] = "Traversing L4 nerve root"
-                elif "l4-l5" in label: f['root_info'] = "Traversing L5 nerve root"
-                elif "l5-s1" in label: f['root_info'] = "Traversing S1 nerve root"
-            
-            # RULE 3: Language Softening (Phase 8)
-            # Replace 'compression' with safer terms unless extremely high confidence
-            if "compression" in label and score < 0.8:
-                f['label'] = f['label'].replace("compression", "mass effect/crowding")
-            
-            # RULE 4: Modifier Assignment
-            if score > 0.85: f['modifier'] = "Definite"
-            elif score > 0.65: f['modifier'] = "Likely"
-            elif score > 0.40: f['modifier'] = "Probable"
-            else: f['modifier'] = "Possible"
-            
-            corrected.append(f)
-        return corrected
-
-class ConsistencyEngine:
-    """Detects and flags logical contradictions in findings."""
-    
-    @staticmethod
-    def detect_contradictions(findings):
-        labels = [f['label'].lower() for f in findings]
-        conflicts = []
-        
-        # Conflict: Normal Canal + Severe Stenosis
-        if any("normal" in l and "canal" in l for l in labels) and \
-           any("severe" in l and "stenosis" in l for l in labels):
-            conflicts.append("Contradiction: Normal canal findings co-exist with severe stenosis markers.")
-            
-        # Conflict: Normal Signal + Severe Desiccation
-        if any("normal" in l and "disc" in l for l in labels) and \
-           any("desiccation" in l or "height loss" in l for l in labels):
-            conflicts.append("Contradiction: Normal disc signal co-exists with degenerative markers.")
-            
-        return conflicts

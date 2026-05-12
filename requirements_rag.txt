@@ -1,0 +1,12 @@
+pdfplumber
+pypdf
+pdf2image
+pytesseract
+sentence-transformers
+faiss-cpu
+tiktoken
+nltk
+torch
+transformers
+numpy
+tqdm

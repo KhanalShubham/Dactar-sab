@@ -1,47 +1,22 @@
 import os
 import re
 import datetime
-import io
 from fpdf import FPDF
-from PIL import Image
-
-
-class ConfigManager:
-    """Handles application settings and environment variables."""
-    @staticmethod
-    def get_default_config():
-        return {
-            "app_name": "SpineAI + CLIP",
-            "version": "1.0.0",
-            "hf_model": "Qwen/Qwen2.5-7B-Instruct",
-            "clip_model": "openai/clip-vit-base-patch32",
-            "safety_gate": True
-        }
-
-
-REPORT_SECTIONS = [
-    "TECHNIQUE",
-    "VERTEBRAL ALIGNMENT",
-    "BONE MARROW SIGNAL",
-    "DISC ASSESSMENT",
-    "SPINAL CANAL & THECAL SAC",
-    "FORAMINAL ASSESSMENT",
-    "FACET JOINTS",
-    "IMPRESSION",
-]
-
 
 class ReportExporter:
     """Handles clinical PDF generation."""
 
+    def __init__(self, report_sections):
+        self.report_sections = report_sections
+
     def _parse_sections(self, report_text):
         """Split report text into named sections."""
         section_content = {}
-        pattern = "|".join(re.escape(s) for s in REPORT_SECTIONS)
+        pattern = "|".join(re.escape(s) for s in self.report_sections)
         parts = re.split(f"({pattern})", report_text, flags=re.IGNORECASE)
         current = None
         for part in parts:
-            if part.strip().upper() in REPORT_SECTIONS:
+            if part.strip().upper() in self.report_sections:
                 current = part.strip().upper()
                 section_content[current] = ""
             elif current:
@@ -79,7 +54,7 @@ class ReportExporter:
 
 
     def generate_clinical_pdf(self, patient_data, report_text,
-                               findings_summary=None, image_bytes=None):
+                                findings_summary=None, image_bytes=None):
         pdf = FPDF()
         pdf.set_margins(20, 20, 20)
         pdf.add_page()
@@ -155,6 +130,8 @@ class ReportExporter:
 
         # ── REFERENCE IMAGE ───────────────────────────────────────────────────
         if image_bytes:
+            from PIL import Image
+            import io
             try:
                 img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
                 tmp = "_spineai_tmp.png"
@@ -172,7 +149,7 @@ class ReportExporter:
         # ── REPORT SECTIONS ───────────────────────────────────────────────────
         section_data = self._parse_sections(report_text)
 
-        for section in REPORT_SECTIONS:
+        for section in self.report_sections:
             content = section_data.get(section, "").strip()
             if not content:
                 content = "Findings unremarkable or deferred to impression."
@@ -234,37 +211,3 @@ class ReportExporter:
         pdf.multi_cell(W, 4.5, self._sanitize(disclaimer))
 
         return bytes(pdf.output())
-
-
-def validate_mri_file(file_path):
-    """Validates if a file is a valid MRI image."""
-    valid_extensions = ('.png', '.jpg', '.jpeg', '.dcm')
-    return file_path.lower().endswith(valid_extensions)
-
-class QuantitativeAnalyzer:
-    """Simulates clinical measurements for professional credibility."""
-    @staticmethod
-    def estimate_metrics(tags):
-        metrics = {}
-        for tag in tags:
-            label = tag['label'].lower()
-            score = tag['score']
-            
-            if "stenosis" in label or "canal" in label:
-                # AP Diameter
-                ap_dia = 12.0 - (score * 8.0)
-                metrics["AP Canal Diameter"] = f"{max(4.0, ap_dia):.1f} mm"
-                # CSF Preservation
-                csf = max(5, int(100 - (score*100)))
-                metrics["CSF Preservation"] = f"{csf}%"
-                # Estimated CSA
-                csa = max(50, 150 - (score * 120))
-                metrics["Dural Sac CSA (Estimated)"] = f"{int(csa)} mm²"
-            
-            if "foraminal" in label:
-                reduction = int(score * 75)
-                metrics["Foraminal Height Reduction"] = f"{reduction}%"
-            
-            if "disc" in label and "height loss" in label:
-                metrics["Disc Height Loss"] = f"{int(score * 40)}%"
-        return metrics

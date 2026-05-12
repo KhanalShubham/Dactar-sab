@@ -3,10 +3,7 @@ import os
 import tempfile
 import numpy as np
 import pydicom
-import cv2
 from PIL import Image, ImageDraw
-import monai
-from monai.transforms import LoadImage, ScaleIntensity, Resize
 import logging
 
 logger = logging.getLogger("SpineImageAnalysis")
@@ -132,49 +129,3 @@ def process_dicom_volume(files_data):
         vol_profile = np.mean(np.array(profiles), axis=0)
         
     return processed_slices, vol_profile, shared_meta
-
-def analyze_mri(file_bytes, filename="study.png"):
-    """
-    Bridge function for the prototype app to use the advanced CLIP engine.
-    Returns: (processed_image_bytes, findings_dict, messages_list)
-    """
-    from clip_integration import MedicalCLIPAnalyzer
-    
-    # 1. Process image (Handles DICOM normalization and metadata)
-    processed_bytes, profile, metadata = process_medical_image(file_bytes, filename)
-    
-    # 2. Run CLIP-based AI Analysis
-    try:
-        analyzer = MedicalCLIPAnalyzer()
-        tags = analyzer.auto_tag_findings(file_bytes)
-    except Exception as e:
-        logger.error(f"CLIP Analysis failed: {e}")
-        tags = []
-
-    # 3. Format findings for app.py (dict of Level -> Finding)
-    findings = {}
-    if not tags:
-        findings["Spine"] = "AI analysis deferred. Please review image manually."
-    else:
-        # Group by level or use finding labels
-        for tag in tags[:6]: # Use top 6 findings
-            label = tag['label']
-            # Heuristic to find level
-            level_found = False
-            for l in ["L1-L2", "L2-L3", "L3-L4", "L4-L5", "L5-S1"]:
-                if l.lower() in label.lower():
-                    findings[l] = label
-                    level_found = True
-                    break
-            if not level_found:
-                findings[label[:20] + "..."] = label
-
-    # 4. Generate status messages
-    messages = [
-        "🔍 BiomedCLIP Precision Engine: Active",
-        "✅ Zero-shot anatomical alignment verified"
-    ]
-    if metadata and metadata.get("name") != "Unknown":
-        messages.append(f"👤 Patient: {metadata.get('name')} (ID: {metadata.get('id')})")
-    
-    return processed_bytes, findings, messages

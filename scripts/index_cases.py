@@ -1,12 +1,16 @@
 import os
 import argparse
+import sys
 from tqdm import tqdm
 import faiss
 import pickle
 import numpy as np
-from clip_integration import MedicalCLIPAnalyzer
 
-def index_directory(image_dir, output_dir="./embeddings_cache"):
+# Add project root to path to allow importing from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from src.analyzer.clip_analyzer import MedicalCLIPAnalyzer
+
+def index_directory(image_dir, output_dir="./data/rag_index"):
     """
     Scans a directory of images, extracts CLIP embeddings, and saves a FAISS index.
     """
@@ -14,6 +18,10 @@ def index_directory(image_dir, output_dir="./embeddings_cache"):
         print(f"Error: Directory {image_dir} does not exist.")
         return
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Use the analyzer which handles the heavy model loading
     analyzer = MedicalCLIPAnalyzer(cache_dir=output_dir)
     
     # Supported extensions
@@ -70,7 +78,7 @@ def index_directory(image_dir, output_dir="./embeddings_cache"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Index historical MRI images for similarity search.")
     parser.add_argument("--dir", type=str, required=True, help="Directory containing MRI images.")
-    parser.add_argument("--out", type=str, default="./embeddings_cache", help="Output directory for index.")
+    parser.add_argument("--out", type=str, default="./data/rag_index", help="Output directory for index.")
     
     args = parser.parse_args()
     index_directory(args.dir, args.out)
