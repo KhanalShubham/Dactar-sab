@@ -1,0 +1,41 @@
+# National Antibiotic Treatment Guidelines (2014) - Nepal
+## Ministry of Health and Population (MoHP)
+
+### Overview
+The National Antibiotic Treatment Guidelines (2014) were developed to address Antimicrobial Resistance (AMR) and provide standardized guidance for antibiotic therapy in Nepal.
+
+### Core Objectives
+- Combat AMR: Reduce morbidity and mortality associated with antibiotic-resistant infections.
+- Rational Use: Standardized guidance for selection, dosage, and duration.
+- Preserve Effectiveness: Prolong the therapeutic lifespan of antimicrobial agents.
+
+### Clinical Scope
+Covers empirical and definitive treatment for:
+- General Medicine
+- Surgery
+- Pediatrics
+- Obstetrics and Gynecology
+- Sexually Transmitted Infections (STIs)
+- Ophthalmology
+- ENT (Ear, Nose, Throat)
+- Dental Infections
+
+### Facility Levels
+- Sub-health post / Health post
+- Primary Health Care Center (PHCC)
+- District Hospital
+
+### Tiered Restrictiveness
+- Non-restricted: General use.
+- Restricted: Prescription by a Medical Officer or higher.
+- Highly restricted: Reserved for specialists or consultants.
+
+### Safety Guidance
+Includes summaries for safety during pregnancy, lactation, and pediatric use. It also covers surgical prophylaxis and topical antibiotic use.
+
+### Guiding Principles
+1. Surveillance: Monitoring resistance trends.
+2. Behavioral Change: Rational prescribing and reducing self-medication.
+3. Infection Control: Strengthening hospital hygiene.
+
+Note: These were succeeded by the National Antimicrobial Treatment Guidelines (2023) based on the WHO AWaRe classification.

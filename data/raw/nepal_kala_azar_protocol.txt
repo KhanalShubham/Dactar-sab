@@ -1,0 +1,18 @@
+# National Kala-azar Elimination Protocol - Nepal
+## Epidemiology and Disease Control Division (EDCD)
+
+### Goal
+Reduce the incidence of Kala-azar (Visceral Leishmaniasis) to less than 1 per 10,000 population at the district level.
+
+### Diagnosis
+- Primary Tool: **rK39 rapid diagnostic test (RDT)**.
+- Features: Simple, sensitive, and field-based detection.
+
+### Treatment Protocol
+- **First-line therapy**: Single-dose infusion of **Liposomal Amphotericin B (L-AmB)**.
+- Historical Note: Replaced oral Miltefosine due to teratogenicity and relapse concerns.
+
+### Surveillance & Control
+- Integrated Vector Management: Indoor residual spraying (IRS) with insecticides in endemic areas (sandfly control).
+- Case Detection: Active case detection and timely reporting via KA Tracker (DHIS2).
+- Pharmacovigilance: Monitoring safety and efficacy of anti-leishmanial drugs.

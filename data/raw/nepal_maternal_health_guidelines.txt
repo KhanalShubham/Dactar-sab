@@ -1,0 +1,24 @@
+# Nepal Maternal Health Guidelines
+## Family Welfare Division, Ministry of Health and Population (MoHP)
+
+### Vision
+To ensure the right to safe motherhood and reproductive health as a fundamental right, as enshrined in the Constitution of Nepal.
+
+### Strategic Goals (Road Map 2030)
+- Reduce Maternal Mortality Ratio (MMR) to 70 per 100,000 live births by 2030 (SDG target).
+- Reduce neonatal mortality.
+
+### Legal Framework
+- Right to Safe Motherhood and Reproductive Health Act (2018).
+
+### Core Services
+- **Continuum of Care**: 
+    - Antenatal Care (ANC).
+    - Skilled attendance during labor and childbirth.
+    - Postnatal Care (PNC).
+- **Accessibility**: Services are part of the Basic Health Service (BHS) package and are provided **free of charge** at public health facilities.
+
+### Priority Areas
+- Quality of Care: Ensuring "respectful maternal care."
+- Equity: Addressing geographical, economic, and social disparities.
+- Emergency Care: Strengthening referral mechanisms and Emergency Obstetric Care (EmOC) for high-risk pregnancies.

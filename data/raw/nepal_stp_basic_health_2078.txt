@@ -1,0 +1,41 @@
+# Standard Treatment Protocol (STP) for Basic Health Services (BHS) Package, 2078 - Nepal
+## Curative Service Division, Ministry of Health and Population (MoHP)
+
+### Overview
+Comprehensive clinical guidelines for managing common health conditions at the basic health care level in Nepal.
+
+### Part One: General Information
+- People-Centered Care: Focus on patient-centered approaches.
+- Rational Prescribing: Principles for appropriate use of drugs and antibiotics.
+- Prescription Standards: Structure of a proper medical prescription.
+- Infection Control: Protocols for prevention, control, and waste management.
+
+### Part Two: Common Emergencies and Symptoms
+- Emergency Conditions:
+    - Surgical skills: Dressing, suturing, incision and drainage.
+    - Acute states: Shock, unconsciousness, convulsions.
+    - Trauma: Primary Trauma Care (PTC), fracture/dislocation management, burns, drowning.
+    - Specifics: Snake bites, poisoning.
+- Common Symptoms:
+    - Pain management (Chest pain, abdominal pain, headache).
+    - Respiratory: Breathlessness, cough.
+    - Gastrointestinal: Nausea, vomiting.
+    - General: Fever, dizziness, vertigo, syncope, itching, fatigue.
+- Specialty Emergencies: ENT and Eye emergencies.
+
+### Part Three: Preventive and Promotive Health Services
+- National Programs:
+    - National Immunization Program (NIP).
+    - Integrated Management of Neonatal and Childhood Illness (IMNCI).
+- Nutrition: Malnutrition management, growth monitoring, micro-nutrient supplementation.
+- Maternal and Reproductive Health:
+    - Antenatal Care (ANC), anemia in pregnancy.
+    - Labor and birth, obstetric first aid.
+    - Safe abortion services, PMTCT.
+    - Family planning, cervical cancer screening.
+- Disease Management:
+    - Communicable: HIV/AIDS, Malaria, Leprosy, Kala-azar, Dengue, Lymphatic Filariasis.
+    - Non-Communicable Diseases (NCDs): Management and screening.
+- Additional: Common skin, oral, ear, nose, and throat conditions.
+
+Note: This 310-page document is the standard for free basic health services in Nepal.

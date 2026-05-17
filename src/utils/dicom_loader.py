@@ -125,7 +125,87 @@ def process_dicom_volume(files_data):
             
     vol_profile = None
     if profiles:
-        # Stack 2D profiles into a 3D mean signal intensity
-        vol_profile = np.mean(np.array(profiles), axis=0)
+        # Standardize profile lengths to the first profile's length using interpolation
+        # This prevents ValueError if slices have inhomogeneous heights.
+        target_len = len(profiles[0])
+        standardized = []
+        for p in profiles:
+            if len(p) != target_len:
+                x_old = np.linspace(0, 1, len(p))
+                x_new = np.linspace(0, 1, target_len)
+                p = np.interp(x_new, x_old, p)
+            standardized.append(p)
+            
+        vol_profile = np.mean(np.array(standardized), axis=0)
         
     return processed_slices, vol_profile, shared_meta
+
+def load_dicom_3d_volume(files_data):
+    """
+    Loads a list of DICOM files into a single 3D NumPy array.
+    Ensures correct spatial ordering and returns metadata for aspect ratios.
+    """
+    # 1. Collect slices (DICOM or standard images)
+    slices = []
+    standard_images = []
+    
+    for b, f in files_data:
+        is_dicom = f.lower().endswith((".dcm", ".dicom", ".ima")) or f.upper().startswith("IM")
+        if is_dicom:
+            try:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(b)
+                    tmp_path = tmp.name
+                ds = pydicom.dcmread(tmp_path)
+                os.remove(tmp_path)
+                slices.append(ds)
+            except:
+                pass
+        else:
+            try:
+                img = Image.open(io.BytesIO(b)).convert("L")
+                standard_images.append(np.array(img))
+            except:
+                pass
+    
+    # 2. Handle DICOM volume (Preferred)
+    if slices:
+        # Sort slices by ImagePositionPatient (Z coordinate)
+        try:
+            slices.sort(key=lambda x: float(x.ImagePositionPatient[2]))
+        except:
+            slices.sort(key=lambda x: int(x.get("InstanceNumber", 0)))
+
+        # Pixel spacing and slice thickness
+        try:
+            ps = slices[0].PixelSpacing
+            st = slices[0].SliceThickness
+            spacing = (float(ps[0]), float(ps[1]), float(st))
+        except:
+            spacing = (1.0, 1.0, 1.0)
+
+        # Filter by shape
+        shapes = [s.pixel_array.shape for s in slices]
+        most_common = max(set(shapes), key=shapes.count)
+        valid_pixel_arrays = [s.pixel_array for s in slices if s.pixel_array.shape == most_common]
+        volume = np.stack(valid_pixel_arrays)
+        
+    # 3. Handle Standard Image stack (Fallback)
+    elif standard_images:
+        # Filter by shape
+        shapes = [img.shape for img in standard_images]
+        most_common = max(set(shapes), key=shapes.count)
+        valid_images = [img for img in standard_images if img.shape == most_common]
+        volume = np.stack(valid_images)
+        spacing = (1.0, 1.0, 1.0) # Assume isotropic for screenshots
+    else:
+        return None, None
+
+    # Normalize to 0-1
+    try:
+        volume = volume.astype(float)
+        volume = (volume - volume.min()) / (volume.max() - volume.min() + 1e-6)
+        
+        return volume, spacing
+    except Exception as e:
+        return None, None
