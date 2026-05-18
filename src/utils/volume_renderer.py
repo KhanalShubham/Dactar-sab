@@ -1,6 +1,5 @@
 import plotly.graph_objects as go
 import numpy as np
-from skimage import measure
 import logging
 
 logger = logging.getLogger("VolumeRenderer")

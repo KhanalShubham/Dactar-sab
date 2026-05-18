@@ -24,6 +24,7 @@ from src.surveillance.epidemic_predictor import EpidemicPredictor
 from src.data.patient_history import PatientHistory
 from src.utils.dicom_loader import process_medical_image, process_dicom_volume, load_dicom_3d_volume
 from src.utils.volume_renderer import create_3d_isosurface, create_mpr_slice
+from src.utils.spine_localizer import build_level_finding_map, level_to_slice_index
 
 # Load environment variables from .env file
 load_dotenv()
@@ -283,264 +284,606 @@ def calculate_severity_index(tags):
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS  — automatically flip for dark / light mode
+   ═══════════════════════════════════════════════════════════════ */
 :root {
-    --primary: #0EA5E9;
-    --primary-dark: #0284C7;
-    --primary-light: #F0F9FF;
-    --bg-main: #F8FAFC;
-    --text-main: #0F172A;
-    --text-muted: #64748B;
-    --success: #10B981;
-    --warning: #F59E0B;
-    --danger: #EF4444;
-    --border: #E2E8F0;
-    --card-bg: #FFFFFF;
+  --c-primary:     #0EA5E9;
+  --c-primary-dk:  #0284C7;
+  --c-primary-lt:  #E0F2FE;
+  --c-surface:     #FFFFFF;
+  --c-surface-2:   #F8FAFC;
+  --c-surface-3:   #F1F5F9;
+  --c-border:      #E2E8F0;
+  --c-text-1:      #0F172A;
+  --c-text-2:      #475569;
+  --c-text-3:      #94A3B8;
+  --c-success:     #10B981;
+  --c-success-bg:  #ECFDF5;
+  --c-success-tx:  #065F46;
+  --c-warning:     #F59E0B;
+  --c-warning-bg:  #FFFBEB;
+  --c-danger:      #EF4444;
+  --c-danger-bg:   #FEF2F2;
+  --shadow-sm:     0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:     0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+  --r-sm: 8px;  --r-md: 12px;  --r-lg: 16px;  --r-xl: 20px;
 }
 
-/* Force light theme for clinical clarity */
+/* Dark mode overrides via Streamlit's data-theme attribute */
+[data-theme="dark"] {
+  --c-primary-lt:  #0C2A40;
+  --c-surface:     #1E2A3A;
+  --c-surface-2:   #141E2E;
+  --c-surface-3:   #0D1623;
+  --c-border:      #2D3E53;
+  --c-text-1:      #E8F0FE;
+  --c-text-2:      #8BA5C0;
+  --c-text-3:      #4D6A88;
+  --c-success-bg:  #052E16;
+  --c-success-tx:  #6EE7B7;
+  --c-warning-bg:  #1C1108;
+  --c-danger-bg:   #1F0808;
+  --shadow-sm:     0 1px 4px rgba(0,0,0,.4);
+  --shadow-md:     0 4px 16px rgba(0,0,0,.55);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════ */
+html, body, [class*="css"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
 .stApp {
-    background-color: var(--bg-main) !important;
+  background-color: var(--c-surface-2) !important;
 }
 
-/* Global Font & Color Overrides */
-html, body, [class*="css"], .stMarkdown, p, span, label, h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    color: var(--text-main) !important;
+.block-container {
+  padding-top: 1.5rem !important;
+  max-width: 1440px !important;
 }
 
-/* Header Branding */
-.main-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 2rem;
-    gap: 1.2rem;
-    padding: 1rem 0;
+#MainMenu, footer, header { visibility: hidden; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR TOGGLE BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ">" button shown when sidebar is COLLAPSED */
+[data-testid="collapsedControl"] {
+  position: fixed !important;
+  top: 12px !important;
+  left: 0 !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  visibility: visible !important;
+  align-items: center !important;
+}
+[data-testid="collapsedControl"] button {
+  background: var(--c-brand, #0EA5E9) !important;
+  border: none !important;
+  border-radius: 0 10px 10px 0 !important;
+  width: 2.6rem !important;
+  height: 2.6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.30) !important;
+}
+[data-testid="collapsedControl"] button svg {
+  fill: #ffffff !important;
+  width: 1.2rem !important;
+  height: 1.2rem !important;
 }
 
-.logo-box {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white !important;
-    padding: 10px;
-    border-radius: 14px;
-    font-weight: 800;
-    font-size: 1.6rem;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+/* "×" button shown inside sidebar when it is OPEN */
+[data-testid="stSidebarCollapseButton"] {
+  display: flex !important;
+  visibility: visible !important;
+}
+[data-testid="stSidebarCollapseButton"] button {
+  background: rgba(14,165,233,0.12) !important;
+  border: 1.5px solid var(--c-brand, #0EA5E9) !important;
+  border-radius: 8px !important;
+  width: 2.2rem !important;
+  height: 2.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+[data-testid="stSidebarCollapseButton"] button svg {
+  fill: var(--c-brand, #0EA5E9) !important;
+  width: 1.1rem !important;
+  height: 1.1rem !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+[data-testid="stSidebar"] {
+  background-color: var(--c-surface) !important;
+  border-right: 1px solid var(--c-border) !important;
+}
+
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] .stMarkdown h3,
+[data-testid="stSidebar"] .stMarkdown strong {
+  color: var(--c-text-1) !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stCaption"] p {
+  color: var(--c-text-2) !important;
+  font-size: 0.8rem !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INPUTS
+   ═══════════════════════════════════════════════════════════════ */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox [data-baseweb="select"] > div {
+  background-color: var(--c-surface) !important;
+  color: var(--c-text-1) !important;
+  border: 1.5px solid var(--c-border) !important;
+  border-radius: var(--r-md) !important;
+  font-size: 0.9375rem !important;
+  transition: border-color .2s, box-shadow .2s !important;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+  border-color: var(--c-primary) !important;
+  box-shadow: 0 0 0 3px rgba(14,165,233,.15) !important;
+  outline: none !important;
+}
+
+.stTextInput label, .stTextArea label, .stSelectbox label {
+  color: var(--c-text-2) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .03em !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+.stButton > button {
+  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dk)) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--r-md) !important;
+  padding: 0.6rem 1.25rem !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: .01em !important;
+  box-shadow: 0 2px 8px rgba(14,165,233,.3) !important;
+  transition: transform .15s, box-shadow .15s !important;
+}
+
+.stButton > button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(14,165,233,.45) !important;
+}
+
+.stButton > button:active {
+  transform: translateY(0) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   METRICS
+   ═══════════════════════════════════════════════════════════════ */
+[data-testid="stMetricValue"] {
+  font-weight: 800 !important;
+  color: var(--c-primary) !important;
+  letter-spacing: -0.04em !important;
+}
+
+[data-testid="stMetricLabel"] {
+  color: var(--c-text-2) !important;
+  font-weight: 500 !important;
+  font-size: 0.8125rem !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALERTS / CALLOUTS
+   ═══════════════════════════════════════════════════════════════ */
+.stAlert {
+  border-radius: var(--r-md) !important;
+  border-left-width: 4px !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════════════════ */
+.stProgress > div > div > div > div {
+  background: linear-gradient(90deg, var(--c-primary), var(--c-primary-dk)) !important;
+  border-radius: 99px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════════════════════════ */
+.stTabs [data-baseweb="tab-list"] {
+  background: var(--c-surface-3) !important;
+  border-radius: var(--r-md) !important;
+  padding: 4px !important;
+  gap: 3px !important;
+  border: 1px solid var(--c-border) !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+  border-radius: var(--r-sm) !important;
+  color: var(--c-text-2) !important;
+  font-weight: 500 !important;
+  padding: 0.4rem 1rem !important;
+  background: transparent !important;
+}
+
+.stTabs [aria-selected="true"] {
+  background: var(--c-surface) !important;
+  color: var(--c-primary) !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPANDERS
+   ═══════════════════════════════════════════════════════════════ */
+[data-testid="stExpander"] {
+  background: var(--c-surface) !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: var(--r-md) !important;
+  overflow: hidden !important;
+}
+
+[data-testid="stExpander"] summary {
+  font-weight: 600 !important;
+  color: var(--c-text-1) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECKBOXES
+   ═══════════════════════════════════════════════════════════════ */
+.stCheckbox label {
+  color: var(--c-text-1) !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SELECTBOX DROPDOWN
+   ═══════════════════════════════════════════════════════════════ */
+[data-baseweb="popover"] {
+  background: var(--c-surface) !important;
+  border: 1px solid var(--c-border) !important;
+  border-radius: var(--r-md) !important;
+}
+
+[data-baseweb="menu"] li {
+  color: var(--c-text-1) !important;
+}
+
+[data-baseweb="menu"] li:hover {
+  background: var(--c-primary-lt) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DIVIDERS
+   ═══════════════════════════════════════════════════════════════ */
+hr {
+  border-color: var(--c-border) !important;
+  opacity: 1 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ── CUSTOM COMPONENTS ──
+   ═══════════════════════════════════════════════════════════════ */
+
+/* App Branding Header */
+.spine-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.spine-logo {
+  width: 46px; height: 46px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dk));
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; font-weight: 800; color: #fff;
+  box-shadow: 0 4px 12px rgba(14,165,233,.25);
+}
+
+.spine-wordmark { display: flex; flex-direction: column; }
+
+.spine-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--c-text-1) !important;
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.spine-sub {
+  font-size: 0.8125rem;
+  color: var(--c-text-2) !important;
+  margin: 0.15rem 0 0;
+  font-weight: 500;
+}
+
+/* Phase / Section Header */
 .report-header {
-    margin-bottom: 2.5rem;
-    padding: 1.5rem 2rem;
-    background: white;
-    border-radius: 18px;
-    border: 1px solid var(--border);
-    border-left: 6px solid var(--primary);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-left: 5px solid var(--c-primary);
+  border-radius: var(--r-lg);
+  padding: 1.125rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .report-header h2 {
-    margin: 0 !important;
-    color: var(--primary-dark) !important;
-    font-weight: 800 !important;
-    font-size: 1.6rem !important;
-    letter-spacing: -0.02em;
+  margin: 0 0 0.25rem !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--c-text-1) !important;
 }
 
 .report-header p {
-    margin: 0.6rem 0 0 0 !important;
-    color: var(--text-muted) !important;
-    font-size: 1rem !important;
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  color: var(--c-text-2) !important;
+  line-height: 1.5;
 }
 
-/* Inputs & Forms */
-.stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {
-    background-color: white !important;
-    color: var(--text-main) !important;
-    border: 1.5px solid var(--border) !important;
-    border-radius: 14px !important;
-    padding: 0.85rem !important;
-    font-size: 1rem !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* Patient Identity Strip */
+.patient-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  background: var(--c-surface-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
-.stTextInput input:focus, .stTextArea textarea:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15) !important;
+.ps-item { display: flex; flex-direction: column; gap: 1px; }
+
+.ps-label {
+  font-size: 0.67rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .07em !important;
+  color: var(--c-text-3) !important;
 }
 
-/* Checkboxes */
-.stCheckbox label {
-    font-weight: 600 !important;
-    color: var(--text-main) !important;
-    font-size: 0.95rem !important;
+.ps-value {
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: var(--c-text-1) !important;
 }
 
-[data-testid="stCheckbox"] {
-    background-color: white !important;
-    border: 1.5px solid var(--border) !important;
-    border-radius: 6px !important;
-    transition: all 0.2s ease !important;
-}
-
-[data-testid="stCheckbox"]:has(input:checked) {
-    background-color: var(--primary) !important;
-    border-color: var(--primary) !important;
-}
-
-[data-testid="stCheckbox"] input:checked + div {
-    color: white !important;
-}
-
-/* Buttons */
-.stButton>button {
-    background: linear-gradient(to right, var(--primary), var(--primary-dark)) !important;
-    color: white !important;
-    border-radius: 14px !important;
-    padding: 0.8rem 2rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.01em !important;
-    border: none !important;
-    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.2) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    width: 100% !important;
-}
-
-.stButton>button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.3) !important;
-    opacity: 0.95;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background-color: white !important;
-    border-right: 1px solid var(--border) !important;
-}
-
-[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-    padding-top: 2rem !important;
-}
-
-/* Section Cards in Review */
+/* Section Review Card */
 .section-card {
-    background: white !important;
-    border: 1px solid var(--border) !important;
-    padding: 1.2rem 1.5rem !important;
-    border-radius: 16px !important;
-    margin-bottom: 0.8rem !important;
-    transition: all 0.2s ease !important;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-left: 4px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.375rem;
+  transition: border-left-color .2s;
 }
 
 .section-card.confirmed {
-    border-left: 6px solid var(--success) !important;
-    background: #F0FDF4 !important;
+  border-left-color: var(--c-success) !important;
+  background: var(--c-success-bg) !important;
 }
 
 .section-card.pending {
-    border-left: 6px solid var(--warning) !important;
+  border-left-color: var(--c-warning) !important;
 }
 
 .sec-title {
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    color: var(--text-main) !important;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  color: var(--c-text-1) !important;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
 
-/* Badges */
-.badge-confirmed { 
-    background: #DCFCE7 !important; 
-    color: #166534 !important; 
-    padding: 4px 12px !important; 
-    border-radius: 99px !important; 
-    font-size: 0.75rem !important; 
-    font-weight: 700 !important; 
+/* Status Badges */
+.badge-confirmed {
+  background: var(--c-success-bg) !important;
+  color: var(--c-success-tx) !important;
+  padding: 3px 10px !important;
+  border-radius: 99px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(16,185,129,.25);
+  white-space: nowrap;
 }
 
-.badge-pending { 
-    background: #FEF3C7 !important; 
-    color: #92400E !important; 
-    padding: 4px 12px !important; 
-    border-radius: 99px !important; 
-    font-size: 0.75rem !important; 
-    font-weight: 700 !important; 
+.badge-pending {
+  background: var(--c-warning-bg) !important;
+  color: #92400E !important;
+  padding: 3px 10px !important;
+  border-radius: 99px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
 }
 
-/* Sign-off Box */
+/* Digital Sign-off Box */
 .sign-box {
-    background: #F8FAFC !important;
-    padding: 2rem !important;
-    border-radius: 20px !important;
-    border: 2px dashed var(--primary) !important;
-    margin-top: 2.5rem !important;
+  background: var(--c-surface);
+  border: 2px dashed var(--c-primary);
+  border-radius: var(--r-xl);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-/* Hide Streamlit default components */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-
-/* Custom Utility Classes */
-.patient-strip {
-    display: flex;
-    justify-content: space-between;
-    background: #F1F5F9;
-    padding: 1.2rem 1.8rem;
-    border-radius: 14px;
-    margin-bottom: 2rem;
-    border: 1px solid var(--border);
-    flex-wrap: wrap;
-    gap: 1.2rem;
+/* Triage Priority Display */
+.triage-IMMEDIATE,
+.triage-URGENT,
+.triage-ROUTINE {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--r-lg);
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
-.patient-strip span {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text-main) !important;
+.triage-IMMEDIATE { background: #EF4444; }
+.triage-URGENT    { background: #F59E0B; }
+.triage-ROUTINE   { background: var(--c-primary); }
+
+.triage-IMMEDIATE h1,
+.triage-URGENT h1,
+.triage-ROUTINE h1 {
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em;
 }
 
-/* Severity Metrics */
-[data-testid="stMetricValue"] {
-    font-weight: 800 !important;
-    color: var(--primary) !important;
-    letter-spacing: -0.03em !important;
+.triage-IMMEDIATE p,
+.triage-URGENT p,
+.triage-ROUTINE p {
+  margin: 0.2rem 0 0 !important;
+  color: rgba(255,255,255,.8) !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 600;
 }
 
-/* Info/Warning Boxes */
-.stAlert {
-    border-radius: 14px !important;
-    border: none !important;
-    background-color: #F1F5F9 !important;
+/* Differential Diagnosis Rows */
+.diff-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.875rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  margin-bottom: 0.4rem;
 }
 
-.stAlert [data-testid="stMarkdownContainer"] p {
-    font-size: 0.9rem !important;
-    line-height: 1.5 !important;
+.diff-bar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
-/* Mobile Adjustments */
+.diff-name { font-weight: 600; color: var(--c-text-1) !important; flex: 1; font-size: 0.9rem; }
+.diff-pct  { font-weight: 700; color: var(--c-text-2) !important; font-size: 0.875rem; }
+
+/* Mobile responsive */
 @media (max-width: 768px) {
-    .main-header { flex-direction: column; align-items: flex-start; }
-    .patient-strip { flex-direction: column; gap: 0.5rem; }
+  .spine-header  { flex-direction: column; align-items: flex-start; }
+  .patient-strip { gap: 0.5rem 1.5rem; }
+  .report-header h2 { font-size: 1.05rem !important; }
+  .sec-title { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
 }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Sidebar toggle button (JS-injected, CSS selectors unreliable across versions) ──
+import streamlit.components.v1 as _components
+_components.html("""
+<script>
+(function() {
+  var par = window.parent;
+
+  function clickNativeToggle() {
+    // Try every known Streamlit sidebar button selector
+    var selectors = [
+      '[data-testid="stSidebarCollapseButton"] button',
+      '[data-testid="collapsedControl"] button',
+      '[data-testid="stSidebar"] button[kind="header"]',
+      'section[data-testid="stSidebar"] > div > div > button',
+      '[data-testid="stSidebarNav"] + div button',
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var btn = par.document.querySelector(selectors[i]);
+      if (btn) { btn.click(); return true; }
+    }
+    return false;
+  }
+
+  function isSidebarVisible() {
+    var sb = par.document.querySelector('[data-testid="stSidebar"]');
+    if (!sb) return false;
+    var rect = sb.getBoundingClientRect();
+    return rect.left > -10;
+  }
+
+  function updateIcon(btn) {
+    btn.textContent = isSidebarVisible() ? '✕' : '☰';
+    btn.title = isSidebarVisible() ? 'Close sidebar' : 'Open sidebar';
+  }
+
+  function createToggle() {
+    if (par.document.getElementById('spineai-sb-toggle')) return;
+    var btn = par.document.createElement('button');
+    btn.id = 'spineai-sb-toggle';
+    btn.style.cssText = [
+      'position:fixed', 'top:14px', 'left:14px', 'z-index:2147483647',
+      'width:42px', 'height:42px', 'border-radius:10px', 'border:none',
+      'background:#0EA5E9', 'color:#fff', 'font-size:19px', 'cursor:pointer',
+      'box-shadow:0 2px 10px rgba(0,0,0,0.28)', 'display:flex',
+      'align-items:center', 'justify-content:center', 'transition:background .15s'
+    ].join(';');
+    btn.onmouseenter = function() { btn.style.background = '#0284C7'; };
+    btn.onmouseleave = function() { btn.style.background = '#0EA5E9'; };
+    btn.onclick = function() {
+      clickNativeToggle();
+      setTimeout(function() { updateIcon(btn); }, 350);
+    };
+    updateIcon(btn);
+    par.document.body.appendChild(btn);
+    // Keep icon in sync on Streamlit re-renders
+    setInterval(function() { updateIcon(btn); }, 800);
+  }
+
+  if (par.document.readyState === 'loading') {
+    par.document.addEventListener('DOMContentLoaded', createToggle);
+  } else {
+    setTimeout(createToggle, 300);
+  }
+})();
+</script>
+""", height=0)
+
 def branding_header():
     st.markdown("""
-        <div class="main-header">
-            <div class="logo-box">S</div>
-            <div>
-                <h1 style='margin:0; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;'>SpineAI Pro</h1>
-                <p style='margin:0; color: #64748B; font-size: 1rem; font-weight: 500;'>Advanced Neuroradiology Diagnostic Infrastructure</p>
+        <div class="spine-header">
+            <div class="spine-logo">S</div>
+            <div class="spine-wordmark">
+                <span class="spine-title">SpineAI Pro</span>
+                <span class="spine-sub">Advanced Neuroradiology Diagnostic Infrastructure &middot; Nepal</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -766,9 +1109,9 @@ elif st.session_state.state == "UPLOAD":
                         log("STAGE 1: Volumetric feature extraction...")
                         analyzer = get_analyzer()
                         if len(uploaded_files) > 1:
-                            tags = analyzer.analyze_volume_consensus([f.getvalue() for f in uploaded_files])
+                            tags = analyzer.analyze_volume_consensus(processed_slices)
                         else:
-                            tags = analyzer.auto_tag_findings(uploaded_files[0].getvalue())
+                            tags = analyzer.auto_tag_findings(active_image)
                         
                         log("STAGE 2: Applying Anatomical Constraints (ACE)...")
                         tags = AnatomicalConstraintEngine.apply_constraints(tags)
@@ -793,9 +1136,7 @@ elif st.session_state.state == "UPLOAD":
                         tags = ensemble_verify_findings(hf_token, tags)
 
                         log("STAGE 4: Professional Narrative Generation...")
-                        # Use middle slice for search/reference
-                        ref_image = uploaded_files[len(uploaded_files)//2].getvalue()
-                        similar = analyzer.find_similar_cases(ref_image)
+                        similar = analyzer.find_similar_cases(active_image)
                         p_info = f"{p['name']}, Age {p['age']}, ID {p['id']}"
                         
                         raw = generate_narrative(hf_token, sir_json, tags, p_info, comparison_mode=comp_mode)
@@ -812,7 +1153,17 @@ elif st.session_state.state == "UPLOAD":
                         # Phase 7.5: Quantitative Analysis
                         from src.utils.metrics import QuantitativeAnalyzer
                         st.session_state.analysis_results["metrics"] = QuantitativeAnalyzer.estimate_metrics(tags)
-                        
+
+                        # Pre-build 3D volume so it's ready in the REVIEW phase viewer
+                        if len(uploaded_files) > 1:
+                            if ("volume_3d" not in st.session_state or
+                                    st.session_state.get("last_uploaded_files") != uploaded_files):
+                                v3d, s3d = load_dicom_3d_volume(files_data)
+                                st.session_state.volume_3d = v3d
+                                st.session_state.spacing_3d = s3d
+                                st.session_state.last_uploaded_files = uploaded_files
+                        st.session_state.pop("review_target_slice", None)
+
                         st.session_state.state = "REVIEW"
                         st.rerun()
         
@@ -896,11 +1247,11 @@ elif st.session_state.state == "REVIEW":
     p = st.session_state.patient_data
     st.markdown(f"""
     <div class="patient-strip">
-        <span><strong>Patient:</strong> {p['name']}</span>
-        <span><strong>ID:</strong> {p['id']}</span>
-        <span><strong>Age:</strong> {p['age']}</span>
-        <span><strong>Date:</strong> {datetime.date.today().strftime('%d %b %Y')}</span>
-        <span><strong>Referring:</strong> {p.get('referrer','N/A')}</span>
+        <div class="ps-item"><span class="ps-label">Patient</span><span class="ps-value">{p['name'] or '—'}</span></div>
+        <div class="ps-item"><span class="ps-label">ID</span><span class="ps-value">{p['id'] or '—'}</span></div>
+        <div class="ps-item"><span class="ps-label">Age</span><span class="ps-value">{p['age'] or '—'}</span></div>
+        <div class="ps-item"><span class="ps-label">Date</span><span class="ps-value">{datetime.date.today().strftime('%d %b %Y')}</span></div>
+        <div class="ps-item"><span class="ps-label">Referring Physician</span><span class="ps-value">{p.get('referrer','—') or '—'}</span></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -933,10 +1284,44 @@ elif st.session_state.state == "REVIEW":
 
     with col_left:
         st.markdown("**Volumetric Study Viewer**")
-        if res.get("is_3d") and "processed_volume" in st.session_state:
+
+        volume_3d = st.session_state.get("volume_3d")
+        spacing_3d = st.session_state.get("spacing_3d", (1.0, 1.0, 1.0))
+
+        if res.get("is_3d") and volume_3d is not None:
+            n_slices = volume_3d.shape[0]
+
+            # ── Level jump buttons ──────────────────────────────────────────
+            level_map = build_level_finding_map(st.session_state.get("section_texts", {}))
+            if level_map:
+                st.caption("**Jump to spinal level:**")
+                sorted_levels = sorted(
+                    level_map.keys(),
+                    key=lambda lev: level_to_slice_index(lev, n_slices)
+                )
+                btn_cols = st.columns(min(len(sorted_levels), 5))
+                for i, lev in enumerate(sorted_levels):
+                    tooltip = "; ".join(level_map[lev][:2])
+                    with btn_cols[i % len(btn_cols)]:
+                        if st.button(lev, key=f"lvl_{lev}", help=tooltip):
+                            st.session_state.review_target_slice = level_to_slice_index(lev, n_slices)
+                            st.rerun()
+
+            # ── Axial MPR slice viewer ──────────────────────────────────────
+            default_slice = st.session_state.get("review_target_slice", n_slices // 2)
+            slice_idx = st.slider("Axial Slice", 0, n_slices - 1, value=default_slice)
+            st.session_state.review_target_slice = slice_idx
+
+            fig_ax = create_mpr_slice(volume_3d, "axial", slice_idx, spacing_3d)
+            if fig_ax:
+                st.plotly_chart(fig_ax, use_container_width=True,
+                                config={"displayModeBar": False})
+        elif res.get("is_3d") and "processed_volume" in st.session_state:
             vol = st.session_state.processed_volume
-            slice_idx = st.slider("Slice Navigator (3D Stack)", 0, len(vol)-1, len(vol)//2)
-            st.image(vol[slice_idx], caption=f"Slice {slice_idx+1} of {len(vol)} (3D Consensus)", use_container_width=True)
+            slice_idx = st.slider("Slice Navigator (3D Stack)", 0, len(vol) - 1, len(vol) // 2)
+            st.image(vol[slice_idx],
+                     caption=f"Slice {slice_idx + 1} of {len(vol)} (3D Consensus)",
+                     use_container_width=True)
         else:
             st.image(res["image"], caption="Key Study Slice", use_container_width=True)
 
@@ -1159,10 +1544,10 @@ elif st.session_state.state == "FCHV_MODE":
             triage_eng = OPDTriageEngine()
             triage_res = triage_eng.analyze_symptoms(symptoms)
             level = triage_res["triage_level"]
-            color = {"IMMEDIATE": "#EF4444", "URGENT": "#F59E0B", "ROUTINE": "#0EA5E9"}.get(level, "gray")
-            
-            st.markdown(f"""<div style="background:{color}; color:white; padding:20px; border-radius:16px; text-align:center;">
-                <h1 style="margin:0; color:white;">{level}</h1><p style="margin:0; color:white;">PRIORITY LEVEL</p>
+            safe_level = level if level in ("IMMEDIATE", "URGENT", "ROUTINE") else "ROUTINE"
+
+            st.markdown(f"""<div class="triage-{safe_level}">
+                <h1>{level}</h1><p>PRIORITY LEVEL</p>
             </div>""", unsafe_allow_html=True)
             
             st.warning(f"**Reasoning:** {triage_res['reason']}")
@@ -1183,9 +1568,14 @@ elif st.session_state.state == "FCHV_MODE":
                 tracker = OutbreakTracker()
                 tracker.log_case("Unknown", diffs[0]["condition"], level)
                 st.markdown("**📊 Differential Diagnosis**")
+                bar_colors = {"HIGH": "#EF4444", "MEDIUM": "#F59E0B", "LOW": "#6B7280"}
                 for d in diffs[:3]:
-                    c = {"HIGH": "#EF4444", "MEDIUM": "#F59E0B", "LOW": "#6B7280"}.get(d["confidence"])
-                    st.markdown(f"<div style='border-left: 5px solid {c}; padding-left: 10px;'>{d['condition']} ({d['likelihood']}%)</div>", unsafe_allow_html=True)
+                    c = bar_colors.get(d["confidence"], "#6B7280")
+                    st.markdown(f"""<div class="diff-row">
+                        <div class="diff-bar" style="background:{c}"></div>
+                        <span class="diff-name">{d['condition']}</span>
+                        <span class="diff-pct">{d['likelihood']}%</span>
+                    </div>""", unsafe_allow_html=True)
             
             if level in ["IMMEDIATE", "URGENT"]:
                 st.markdown("---")

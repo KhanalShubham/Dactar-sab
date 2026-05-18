@@ -5,7 +5,6 @@ This document serves as the master technical and clinical architecture for **Nep
 
 Unlike general-purpose AI (ChatGPT, Claude), which lacks local context, NepalMed AI is built on a "Radiologist-in-the-Loop" and "Physician-as-the-Trainer" philosophy. It leverages the technical foundations of the **SpineAI Pro** engine—including zero-shot vision analysis, causal reasoning, and safety-gate architectures—to create a unified diagnostic and decision-support backbone for the entire Ministry of Health & Population (MoHP) network.
 
----
 
 ## 2. The Vision: A Living Intelligence for Nepal
 The core objective is to create a system that doesn't just "know" medicine, but "understands" Nepal. 
