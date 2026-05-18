@@ -24,7 +24,8 @@ from src.surveillance.epidemic_predictor import EpidemicPredictor
 from src.data.patient_history import PatientHistory
 from src.utils.dicom_loader import process_medical_image, process_dicom_volume, load_dicom_3d_volume
 from src.utils.volume_renderer import create_3d_isosurface, create_mpr_slice
-from src.utils.spine_localizer import build_level_finding_map, level_to_slice_index
+from src.utils.spine_localizer import build_level_finding_map, level_to_slice_index, get_levels_from_sir, LEVEL_FRACTIONS
+from src.utils.dicom_http_server import build_embedded_viewer as _build_dicom_viewer
 
 # Load environment variables from .env file
 load_dotenv()
@@ -1050,12 +1051,20 @@ elif st.session_state.state == "UPLOAD":
     if uploaded_files:
         # 1. DATA PROCESSING (Unified for both tabs)
         files_data = [(f.getvalue(), f.name) for f in uploaded_files]
+
+        # Build embedded viewer HTML (only when file set changes)
+        _file_keys = tuple(f.name for f in uploaded_files)
+
         if len(uploaded_files) > 1:
             processed_slices, vol_profile, dcm_meta = process_dicom_volume(files_data)
             st.session_state.processed_volume = processed_slices
-            active_image = processed_slices[len(processed_slices)//2] 
+            active_image = processed_slices[len(processed_slices)//2]
             intensity_profile = vol_profile
             study_type_label = f"Volumetric Study ({len(uploaded_files)} slices)"
+            # Build embedded viewer only when files change
+            if st.session_state.get("_viewer_file_keys") != _file_keys:
+                st.session_state.dicom_viewer_html = _build_dicom_viewer(processed_slices)
+                st.session_state._viewer_file_keys = _file_keys
         else:
             f = uploaded_files[0]
             processed_bytes, intensity_profile, dcm_meta = process_medical_image(f.getvalue(), f.name)
@@ -1168,66 +1177,20 @@ elif st.session_state.state == "UPLOAD":
                         st.rerun()
         
         with tab_3d:
-            if len(uploaded_files) > 1:
-                # Cache the 3D volume to prevent expensive re-loading on every slider change
-                if "volume_3d" not in st.session_state or st.session_state.get("last_uploaded_files") != uploaded_files:
-                    with st.spinner("Reconstructing 3D Volume..."):
-                        volume_3d, spacing_3d = load_dicom_3d_volume(files_data)
-                        st.session_state.volume_3d = volume_3d
-                        st.session_state.spacing_3d = spacing_3d
-                        st.session_state.last_uploaded_files = uploaded_files
-                
-                volume_3d = st.session_state.volume_3d
-                spacing_3d = st.session_state.spacing_3d
-                    
-                if volume_3d is not None:
-                    col_mpr, col_3d_view = st.columns([1, 1.2])
-                    
-                    with col_mpr:
-                        st.markdown("#### Multi-Planar Reconstruction (MPR)")
-                        st.caption("Slice through anatomical planes in real-time.")
-                        
-                        z_max = volume_3d.shape[0] - 1
-                        y_max = volume_3d.shape[1] - 1
-                        x_max = volume_3d.shape[2] - 1
-
-                        z_idx = st.slider("Axial (Z)", 0, z_max, z_max//2) if z_max > 0 else 0
-                        y_idx = st.slider("Coronal (Y)", 0, y_max, y_max//2) if y_max > 0 else 0
-                        x_idx = st.slider("Sagittal (X)", 0, x_max, x_max//2) if x_max > 0 else 0
-                        
-                        mpr_tab_1, mpr_tab_2, mpr_tab_3 = st.tabs(["Axial", "Coronal", "Sagittal"])
-                        with mpr_tab_1:
-                            fig_ax = create_mpr_slice(volume_3d, 'axial', z_idx, spacing_3d)
-                            st.plotly_chart(fig_ax, use_container_width=True, config={'displayModeBar': False})
-                        with mpr_tab_2:
-                            fig_cor = create_mpr_slice(volume_3d, 'coronal', y_idx, spacing_3d)
-                            st.plotly_chart(fig_cor, use_container_width=True, config={'displayModeBar': False})
-                        with mpr_tab_3:
-                            fig_sag = create_mpr_slice(volume_3d, 'sagittal', x_idx, spacing_3d)
-                            st.plotly_chart(fig_sag, use_container_width=True, config={'displayModeBar': False})
-
-                    with col_3d_view:
-                        st.markdown("#### Interactive 3D Rendering")
-                        st.caption("Rotate, zoom, and adjust tissue density.")
-                        
-                        threshold_val = st.select_slider("Tissue Density Threshold", 
-                                                   options=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 
-                                                   value=0.4,
-                                                   help="Lower values show soft tissue; higher values isolate bone.")
-                        
-                        fig_3d = create_3d_isosurface(volume_3d, spacing_3d, threshold_val)
-                        if fig_3d:
-                            st.plotly_chart(fig_3d, use_container_width=True)
-                        else:
-                            st.error("3D rendering failed for this volume.")
-                else:
-                    st.error("#### 🧊 3D Reconstruction Unavailable")
-                    st.warning("The system could not build a 3D volume from these files. This is usually because:")
-                    st.write("- Files are standard images (PNG/JPG) rather than clinical **DICOM** files.")
-                    st.write("- Slices have inconsistent dimensions or are missing spatial metadata.")
-                    st.info("💡 **Clinical Tip:** For full 3D functionality, upload the original DICOM series exported from the hospital PACS.")
+            _vhtml = st.session_state.get("dicom_viewer_html")
+            if len(uploaded_files) > 1 and _vhtml:
+                st.caption(
+                    "🖱️ **Mouse wheel** — scroll slices &nbsp;|&nbsp; "
+                    "**Left drag** — Window/Level &nbsp;|&nbsp; "
+                    "**Right drag** — Zoom &nbsp;|&nbsp; "
+                    "**Shift+drag** — Zoom &nbsp;|&nbsp; "
+                    "**Alt+drag** — Pan"
+                )
+                _components.html(_vhtml, height=650, scrolling=False)
+            elif len(uploaded_files) > 1:
+                st.info("Building viewer… upload complete, awaiting slice processing.")
             else:
-                st.warning("3D Visualization requires a volumetric study (multiple DICOM slices).")
+                st.warning("3D/DICOM Visualization requires a volumetric study (multiple DICOM slices).")
 # ─────────────────────────────────────────────────────────────────────────────
 # PHASE 3 — DOCTOR REVIEW (Section by Section)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1289,33 +1252,87 @@ elif st.session_state.state == "REVIEW":
         spacing_3d = st.session_state.get("spacing_3d", (1.0, 1.0, 1.0))
 
         if res.get("is_3d") and volume_3d is not None:
+            from src.utils.spine_localizer import get_levels_from_sir, LEVEL_FRACTIONS
+            from src.utils.volume_renderer import create_3d_with_highlight
             n_slices = volume_3d.shape[0]
 
-            # ── Level jump buttons ──────────────────────────────────────────
-            level_map = build_level_finding_map(st.session_state.get("section_texts", {}))
-            if level_map:
-                st.caption("**Jump to spinal level:**")
-                sorted_levels = sorted(
-                    level_map.keys(),
-                    key=lambda lev: level_to_slice_index(lev, n_slices)
-                )
-                btn_cols = st.columns(min(len(sorted_levels), 5))
-                for i, lev in enumerate(sorted_levels):
-                    tooltip = "; ".join(level_map[lev][:2])
-                    with btn_cols[i % len(btn_cols)]:
-                        if st.button(lev, key=f"lvl_{lev}", help=tooltip):
-                            st.session_state.review_target_slice = level_to_slice_index(lev, n_slices)
-                            st.rerun()
+            # ── Build level list: SIR JSON (reliable) + report text + defaults ──
+            sir_levels  = get_levels_from_sir(res.get("sir_json", {}))
+            report_map  = build_level_finding_map(st.session_state.get("section_texts", {}))
+            all_levels  = {lev: report_map.get(lev, [f"Navigate to {lev}"]) for lev in sir_levels}
+            for lev, descs in report_map.items():          # add any extra from report
+                all_levels.setdefault(lev, descs)
+            for lev in ["L3-L4", "L4-L5", "L5-S1"]:      # always show key lumbar levels
+                all_levels.setdefault(lev, [f"Navigate to {lev}"])
+            sorted_levels = sorted(all_levels.keys(),
+                                   key=lambda l: level_to_slice_index(l, n_slices))
 
-            # ── Axial MPR slice viewer ──────────────────────────────────────
+            selected_lev  = st.session_state.get("review_selected_level")
             default_slice = st.session_state.get("review_target_slice", n_slices // 2)
-            slice_idx = st.slider("Axial Slice", 0, n_slices - 1, value=default_slice)
-            st.session_state.review_target_slice = slice_idx
 
-            fig_ax = create_mpr_slice(volume_3d, "axial", slice_idx, spacing_3d)
-            if fig_ax:
-                st.plotly_chart(fig_ax, use_container_width=True,
-                                config={"displayModeBar": False})
+            # ── Level navigation buttons ────────────────────────────────────
+            st.caption("Navigate to spinal level:")
+            btn_cols = st.columns(min(len(sorted_levels), 5))
+            for i, lev in enumerate(sorted_levels):
+                tooltip = "; ".join(all_levels[lev][:2])
+                is_sel  = (lev == selected_lev)
+                with btn_cols[i % len(btn_cols)]:
+                    if st.button(lev, key=f"lvl_{lev}", help=tooltip,
+                                 type="primary" if is_sel else "secondary"):
+                        st.session_state.review_target_slice  = level_to_slice_index(lev, n_slices)
+                        st.session_state.review_selected_level = lev
+                        st.rerun()
+
+            # ── DICOM viewer + 3D tabs ───────────────────────────────────────
+            tab_dwv, tab_3d_rev = st.tabs(["📺 DICOM Viewer", "🧊 3D + Highlight"])
+
+            with tab_dwv:
+                _vhtml = st.session_state.get("dicom_viewer_html")
+                tgt = st.session_state.get("review_target_slice", default_slice)
+                if _vhtml:
+                    if selected_lev:
+                        st.caption(f"Level: **{selected_lev}** → slice {tgt + 1}")
+                    st.caption("Wheel=slices · Left drag=W/L · Right drag=Zoom · Alt/shift+drag=Pan")
+                    # Viewer rendered with fixed HTML → Streamlit preserves iframe state across reruns
+                    _components.html(_vhtml, height=560, scrolling=False)
+                    # Tiny jump-signal component: sends postMessage to all sibling iframes
+                    if selected_lev:
+                        _components.html(
+                            f"<script>(function(){{var i={int(tgt)};"
+                            "function j(){var p=window.parent;"
+                            "p.document.querySelectorAll('iframe').forEach(function(f){"
+                            "try{f.contentWindow.postMessage({cmd:'jumpSlice',index:i},'*');}catch(e){}});"
+                            "}"
+                            "setTimeout(j,300);setTimeout(j,800);"
+                            "})();</script>",
+                            height=0
+                        )
+                else:
+                    # Fallback to Plotly MPR if viewer HTML not available
+                    slice_idx = st.slider("Axial Slice", 0, n_slices - 1,
+                                          value=default_slice, key="rev_axial")
+                    st.session_state.review_target_slice = slice_idx
+                    if selected_lev:
+                        st.caption(f"Selected level: **{selected_lev}**")
+                    fig_ax = create_mpr_slice(volume_3d, "axial", slice_idx, spacing_3d)
+                    if fig_ax:
+                        st.plotly_chart(fig_ax, use_container_width=True,
+                                        config={"displayModeBar": False})
+
+            with tab_3d_rev:
+                hl_frac = LEVEL_FRACTIONS.get(selected_lev) if selected_lev else None
+                fig3d_hl = create_3d_with_highlight(
+                    volume_3d, spacing_3d, threshold=0.25,
+                    highlight_z_fraction=hl_frac
+                )
+                if fig3d_hl:
+                    lbl = f"Blue plane = **{selected_lev}**" if selected_lev else "Select a level above to highlight"
+                    st.caption(lbl)
+                    st.plotly_chart(fig3d_hl, use_container_width=True,
+                                    config={"displayModeBar": True})
+                else:
+                    st.warning("3D render unavailable for this volume.")
+
         elif res.get("is_3d") and "processed_volume" in st.session_state:
             vol = st.session_state.processed_volume
             slice_idx = st.slider("Slice Navigator (3D Stack)", 0, len(vol) - 1, len(vol) // 2)

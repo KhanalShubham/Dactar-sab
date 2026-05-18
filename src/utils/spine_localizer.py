@@ -70,3 +70,16 @@ def build_level_finding_map(section_texts):
                 level_map[lev].append(sent[:100])
 
     return level_map
+
+
+LEVEL_FRACTIONS = _LEVEL_FRACTIONS
+
+
+def get_levels_from_sir(sir_json):
+    """Extract spinal-level keys from a SIR JSON dict (e.g. {'L1-L2': {...}, 'L4-L5': {...}})."""
+    levels = []
+    for key in sir_json:
+        clean = key.upper().replace('–', '-')
+        if _LEVEL_RE.match(clean):
+            levels.append(clean)
+    return sorted(set(levels), key=lambda l: _LEVEL_FRACTIONS.get(l, 0.5))
