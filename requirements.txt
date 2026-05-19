@@ -14,3 +14,9 @@ faiss-cpu
 tqdm
 open_clip_torch
 opencv-python-headless
+plotly
+sentence-transformers
+nltk
+pdfplumber
+pypdf
+pdf2image
